@@ -4,8 +4,32 @@
     <meta charset="UTF-8">
     <title>Type Master Global</title>
     <style>
-        body { font-family: 'Consolas', 'Courier New', monospace; background-color: #121212; color: #e0e0e0; display: flex; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
-        .main-container { display: flex; width: 100%; max-width: 1600px; }
+        /* [Layout Fix] 修改 body 設定，允許垂直捲動，並改為垂直排列 */
+        body { 
+            font-family: 'Consolas', 'Courier New', monospace; 
+            background-color: #121212; 
+            color: #e0e0e0; 
+            margin: 0; 
+            
+            /* 關鍵修改：允許捲動，改為垂直佈局 */
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh;
+            overflow-y: auto; /* 允許垂直捲動 */
+            padding-bottom: 50px; /* 留空間給 Footer */
+        }
+
+        /* [Layout Fix] 遊戲主容器設定為固定高度，避免被文字擠壓 */
+        .main-container { 
+            display: flex; 
+            width: 100%; 
+            max-width: 1600px; 
+            height: 90vh; /* 佔據視窗 90% 高度 */
+            flex-shrink: 0; /* 防止被壓縮 */
+            border-bottom: 1px solid #333; /* 與下方文字區隔 */
+        }
+
         .game-section { flex: 3; display: flex; flex-direction: column; border-right: 2px solid #333; }
         
         .top-bar { background: #1a1a1a; padding: 10px 15px; display: flex; justify-content: flex-end; border-bottom: 1px solid #333; }
@@ -51,7 +75,8 @@
 
         #game-over-modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.95); padding: 40px; border-radius: 15px; text-align: center; border: 2px solid #f1c40f; z-index: 100; min-width: 300px; }
     </style>
-</head>
+    
+    </head>
 <body>
 
 <div class="main-container">
@@ -156,43 +181,40 @@
             </table>
         </div>
     </div>
-</div>
-
-<div style="max-width: 1000px; margin: 30px auto; padding: 30px; background: #1a1a1a; color: #b0b0b0; border-radius: 10px; border: 1px solid #333; font-family: sans-serif; line-height: 1.8;">
+</div> 
+<div style="max-width: 1000px; margin: 30px auto; padding: 30px; background: #1a1a1a; color: #b0b0b0; border-radius: 10px; border: 1px solid #333; line-height: 1.8;">
     
-    <h2 style="color: #f1c40f; font-family: 'Courier New', monospace; border-bottom: 1px dashed #555; padding-bottom: 10px; margin-bottom: 20px;">About Type Master Global</h2>
+    <h2 style="color: #f1c40f; border-bottom: 1px dashed #555; padding-bottom: 10px; margin-bottom: 20px;">About Type Master Global</h2>
 
     <div style="display: flex; flex-wrap: wrap; gap: 40px;">
-        
         <div style="flex: 1; min-width: 300px;">
             <h3 style="color: #e0e0e0; margin-top: 0;">🚀 Game Features</h3>
             <p>Type Master Global is a comprehensive web-based typing game designed to improve your typing speed and accuracy through gamified challenges. Unlike traditional typing tests, this game offers:</p>
-            <ul style="list-style-type: disc; padding-left: 20px;">
-                <li><strong>Global Language Support:</strong> Practice in 11 different languages including English, Chinese (Traditional & Simplified), Japanese, Korean, Spanish, German, French, Portuguese, Russian, and Thai.</li>
+            <ul style="padding-left: 20px;">
+                <li><strong>Global Language Support:</strong> Practice in 11 different languages including English, Chinese, Japanese, Korean, and more.</li>
                 <li><strong>52 Progressive Levels:</strong> Start with simple single-letter drops and progress to intense 52-character randomized storms.</li>
-                <li><strong>Customizable Difficulty:</strong> Five speed settings ranging from "Turtle" (for beginners) to "Extreme" (for pros).</li>
-                <li><strong>Dual Modes:</strong> Choose "Challenge Mode" for ranked gameplay or "Practice Mode" to focus on specific keys or symbols.</li>
+                <li><strong>Customizable Difficulty:</strong> Five speed settings ranging from "Turtle" to "Extreme".</li>
+                <li><strong>Dual Modes:</strong> Choose "Challenge Mode" for ranked gameplay or "Practice Mode" for specific keys.</li>
             </ul>
         </div>
 
         <div style="flex: 1; min-width: 300px;">
             <h3 style="color: #e0e0e0; margin-top: 0;">🎮 How to Play</h3>
-            <p>The rules are simple but addictive:</p>
             <ol style="padding-left: 20px;">
-                <li><strong>Select Your Settings:</strong> Choose your preferred language, level complexity, and drop speed.</li>
-                <li><strong>Defend the Line:</strong> Characters will fall from the top of the screen. Your goal is to type the corresponding key before the character hits the red <strong>"DEADLINE"</strong> at the bottom.</li>
-                <li><strong>Score Points:</strong> Each successful hit grants you points. If a character crosses the deadline, it turns gray and counts as a miss.</li>
-                <li><strong>Beat the Clock:</strong> You have 60 seconds to achieve the highest score possible. Check your history to track your improvement over time!</li>
+                <li><strong>Select Your Settings:</strong> Choose your preferred language, level, and speed.</li>
+                <li><strong>Defend the Line:</strong> Characters will fall from the top. Type the corresponding key before they hit the red <strong>"DEADLINE"</strong>.</li>
+                <li><strong>Score Points:</strong> Each successful hit grants you points. Crossing the deadline counts as a miss.</li>
+                <li><strong>Beat the Clock:</strong> You have 60 seconds to achieve the highest score possible.</li>
             </ol>
         </div>
     </div>
 
     <div style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
         <h3 style="color: #e0e0e0;">💡 Benefits of Typing Practice</h3>
-        <p>Regular practice with Type Master Global helps develop <strong>muscle memory</strong>, allowing you to type without looking at the keyboard (touch typing). Improving your typing speed can significantly boost productivity in work and study environments. Additionally, the game's "falling character" mechanic enhances visual-motor reaction time and cognitive processing speed.</p>
+        <p>Regular practice with Type Master Global helps develop <strong>muscle memory</strong>, allowing you to type without looking at the keyboard (touch typing). Improving your typing speed can significantly boost productivity in work and study environments.</p>
     </div>
-
 </div>
+
 
 <div id="game-over-modal">
     <h2 style="color: #fff;" data-i18n="modal_title">Game Over</h2>
@@ -200,12 +222,11 @@
     <button onclick="closeModal()" style="background:#27ae60; color:white; border:none; padding: 10px 20px; cursor:pointer; font-size:1rem; border-radius:4px;" data-i18n="modal_close">Close</button>
 </div>
 
-<footer style="text-align:center; padding: 10px; font-size: 0.8rem; color: #555; position: fixed; bottom: 0; right: 20px;">
-    &copy; 2026 Type Master Global. <a href="privacy.html" style="color: #777;">Privacy Policy</a>
+<footer style="text-align:center; padding: 20px; font-size: 0.8rem; color: #555; width: 100%;">
+    &copy; 2026 Type Master. <a href="privacy.html" style="color: #777;">Privacy Policy</a>
 </footer>
 
 <script>
-    // ---------------- 語言字典 ----------------
     const translations = {
         "en": {
             tab_challenge: "🔥 Challenge", tab_practice: "🛠️ Practice",
@@ -581,7 +602,6 @@
         renderHistory();
     }
 
-    // 修復點：加入輸入驗證函式
     function validateInput(el) {
         if(el.value === "") return;
         let val = parseInt(el.value);
