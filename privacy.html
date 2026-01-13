@@ -3,47 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - Type Master Global</title>
+    <title>Privacy Policy - Playneer Kids</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
-        h1 { color: #2c3e50; }
-        h2 { color: #34495e; margin-top: 20px; }
-        p { margin-bottom: 15px; }
+        body { font-family: 'Noto Sans TC', sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 40px 20px; color: #333; background-color: #f3f4f6; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h1 { color: #2c3e50; margin-top: 0; }
+        h2 { color: #34495e; margin-top: 25px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+        p { margin-bottom: 15px; color: #4a5568; }
+        a { color: #4a90e2; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .back-link { display: inline-block; margin-bottom: 20px; font-weight: bold; }
     </style>
+	<style>
+		/* 禁止選取文字 */
+		body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+	</style>
+	<script>
+		// 禁止右鍵選單
+		document.addEventListener('contextmenu', event => event.preventDefault());
+		// 禁止 F12 和一些快捷鍵 (僅作簡單防護)
+		document.onkeydown = function(e) {
+			if(event.keyCode == 123) { return false; } // F12
+			if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } // Ctrl+Shift+I
+			if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } // Ctrl+Shift+C
+			if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } // Ctrl+Shift+J
+			if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } // Ctrl+U
+		}
+	</script>
 </head>
 <body>
 
-    <h1>Privacy Policy for Type Master Global</h1>
-    <p>Last updated: 2026-01-11</p>
+    <a href="index.html" class="back-link">⬅ Back to Home</a>
 
-    <p>At Type Master Global, accessible from https://playneer-kids.github.io/typing-game/, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by Type Master Global and how we use it.</p>
+    <div class="container">
+        <h1>Privacy Policy for Playneer Kids</h1>
+        <p>Last updated: 2026-01-14</p>
 
-    <h2>Log Files</h2>
-    <p>Type Master Global follows a standard procedure of using log files. These files log visitors when they visit websites. The information collected by log files includes internet protocol (IP) addresses, browser type, Internet Service Provider (ISP), date and time stamp, referring/exit pages, and possibly the number of clicks. These are not linked to any information that is personally identifiable.</p>
+        <p>At Playneer Kids (accessible from https://playneer-kids.github.io/), one of our main priorities is the privacy of our visitors. This Privacy Policy document applies to all tools and games hosted on this platform, including <strong>Dictation Tool (默書神器)</strong> and <strong>Type Master Global (打字遊戲)</strong>.</p>
 
-    <h2>Cookies and Web Beacons</h2>
-    <p>Like any other website, Type Master Global uses 'cookies'. These cookies are used to store information including visitors' preferences, and the pages on the website that the visitor accessed or visited. The information is used to optimize the users' experience by customizing our web page content based on visitors' browser type and/or other information.</p>
+        <h2>Collection of Data</h2>
+        <p><strong>Dictation Tool:</strong> We do NOT collect, store, or upload any text you input into the Dictation Tool. All processing (speech synthesis and text analysis) happens locally on your device (Client-side processing).</p>
+        <p><strong>Type Master Global:</strong> Game scores are stored locally in your browser's "Local Storage" and are not uploaded to any server. We do not collect personal identifiable information.</p>
 
-    <h2>Google DoubleClick DART Cookie</h2>
-    <p>Google is one of a third-party vendor on our site. It also uses cookies, known as DART cookies, to serve ads to our site visitors based upon their visit to www.website.com and other sites on the internet. However, visitors may choose to decline the use of DART cookies by visiting the Google ad and content network Privacy Policy at the following URL – <a href="https://policies.google.com/technologies/ads">https://policies.google.com/technologies/ads</a></p>
+        <h2>Log Files</h2>
+        <p>Playneer Kids follows a standard procedure of using log files provided by hosting services (e.g., GitHub Pages). The information collected includes IP addresses, browser type, ISP, date/time stamp, and referring/exit pages.</p>
 
-    <h2>Privacy Policies</h2>
-    <p>You may consult this list to find the Privacy Policy for each of the advertising partners of Type Master Global.</p>
-    <p>Third-party ad servers or ad networks use technologies like cookies, JavaScript, or Web Beacons that are used in their respective advertisements and links that appear on Type Master Global, which are sent directly to users' browser. They automatically receive your IP address when this occurs. These technologies are used to measure the effectiveness of their advertising campaigns and/or to personalize the advertising content that you see on websites that you visit.</p>
-    <p>Note that Type Master Global has no access to or control over these cookies that are used by third-party advertisers.</p>
+        <h2>Cookies and Advertising</h2>
+        <p>We use Google AdSense to serve ads. Google uses cookies (DART cookies) to serve ads based on your visit to this site and other sites on the Internet.</p>
+        <p>You may choose to decline the use of DART cookies by visiting the Google ad and content network Privacy Policy at: <a href="https://policies.google.com/technologies/ads" target="_blank">https://policies.google.com/technologies/ads</a></p>
 
-    <h2>Third Party Privacy Policies</h2>
-    <p>Type Master Global's Privacy Policy does not apply to other advertisers or websites. Thus, we are advising you to consult the respective Privacy Policies of these third-party ad servers for more detailed information. It may include their practices and instructions about how to opt-out of certain options.</p>
+        <h2>Children's Information</h2>
+        <p>We encourage parents and guardians to observe and guide their children's online activity. Playneer Kids does not knowingly collect any Personal Identifiable Information from children under the age of 13. If you believe your child provided this kind of information on our website, please contact us immediately.</p>
 
-    <h2>Children's Information</h2>
-    <p>Another part of our priority is adding protection for children while using the internet. We encourage parents and guardians to observe, participate in, and/or monitor and guide their online activity.</p>
-    <p>Type Master Global does not knowingly collect any Personal Identifiable Information from children under the age of 13. If you think that your child provided this kind of information on our website, we strongly encourage you to contact us immediately and we will do our best efforts to promptly remove such information from our records.</p>
-
-    <h2>Consent</h2>
-    <p>By using our website, you hereby consent to our Privacy Policy and agree to its Terms and Conditions.</p>
-
-    <h2>Contact Us</h2>
-    <p>If you have additional questions or require more information about our Privacy Policy, do not hesitate to contact us at playneer.official@gmail.com.</p>
+        <h2>Contact Us</h2>
+        <p>If you have additional questions or require more information about our Privacy Policy, do not hesitate to contact us at playneer.official@gmail.com.</p>
+    </div>
 
 </body>
 </html>
