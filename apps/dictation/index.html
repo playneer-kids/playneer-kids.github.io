@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>默書神器 | Playneer Kids</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4018994426619685" crossorigin="anonymous"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; background-color: #f3f4f6; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        
+        /* Back Home Button */
+        .nav-home { align-self: flex-start; margin-bottom: 15px; max-width: 800px; width: 100%; margin-left: auto; margin-right: auto;}
+        .btn-home { text-decoration: none; color: #4a5568; background: #e2e8f0; padding: 8px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center; transition: 0.2s; }
+        .btn-home:hover { background: #cbd5e0; }
+
+        .container { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); width: 100%; max-width: 800px; display: flex; flex-direction: column; }
+        h2 { text-align: center; color: #2d3748; margin-bottom: 20px; font-weight: 800; letter-spacing: 1px; margin-top: 0; }
+        
+        /* 廣告區塊 */
+        .ad-container { width: 100%; min-height: 100px; background-color: #edf2f7; border: 1px dashed #cbd5e0; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; color: #718096; font-size: 14px; overflow: hidden; }
+
+        .section-box { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .tips { font-size: 13px; color: #718096; background: #ebf8ff; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #4299e1; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568; font-size: 14px; }
+        
+        textarea { width: 100%; height: 120px; padding: 12px; border: 2px solid #cbd5e0; border-radius: 8px; font-size: 18px; resize: vertical; transition: all 0.3s; font-family: inherit; line-height: 1.5; }
+        textarea:focus { border-color: #4299e1; outline: none; }
+        
+        /* 核心遮蔽樣式 */
+        body.masked-mode #text-input,
+        body.masked-mode #current-word-display, 
+        body.masked-mode #sentence-preview,
+        body.masked-mode #pronunciation-display { filter: blur(12px); opacity: 0.5; user-select: none; pointer-events: none; }
+
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; flex-wrap: wrap; gap: 10px; }
+        .action-left { display: flex; gap: 10px; align-items: center; }
+        .btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-upload { background: #4a5568; color: white; }
+        .btn-toggle-eye { background: #ed8936; color: white; }
+        .btn-toggle-eye:hover { background: #dd6b20; }
+
+        select, input[type="range"] { width: 100%; padding: 8px; margin-bottom: 5px; cursor: pointer; border: 1px solid #cbd5e0; border-radius: 6px; }
+
+        /* 顯示區 */
+        .dictation-display { background-color: #ebf8ff; border: 3px dashed #4299e1; color: #2c5282; padding: 30px 20px; border-radius: 15px; min-height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; transition: 0.3s; }
+        .current-word { font-size: 60px; font-weight: bold; color: #2b6cb0; line-height: 1.2; margin-bottom: 5px; text-align: center; }
+        .word-pronunciation { font-size: 14px; color: #fff; background: #4a5568; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; }
+        .full-sentence-preview { font-size: 16px; color: #718096; text-align: center; margin-top: 15px; min-height: 24px; }
+
+        .controls-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .control-item { flex: 1; min-width: 140px; }
+
+        .buttons { display: flex; gap: 10px; margin-top: 20px; }
+        button.main-btn { flex: 1; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: bold; color: white; transition: transform 0.1s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #btn-play { background: #48bb78; } #btn-pause { background: #ecc94b; color: #4a5568; } #btn-stop { background: #f56565; }
+        .nav-btn { background: #cbd5e0; color: #4a5568; max-width: 60px; }
+        button:active { transform: scale(0.98); } button:disabled { background: #edf2f7; color: #cbd5e0; cursor: not-allowed; box-shadow: none; }
+
+        .status { margin-top: 10px; text-align: right; font-size: 13px; color: #718096; }
+        
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #edf2f7; font-size: 12px; color: #a0aec0; text-align: center; line-height: 1.6; }
+        .footer a { color: #718096; text-decoration: underline; }
+    </style>
+	<style>
+		/* 禁止選取文字 */
+		body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+	</style>
+	<script>
+		// 禁止右鍵選單
+		document.addEventListener('contextmenu', event => event.preventDefault());
+		// 禁止 F12 和一些快捷鍵 (僅作簡單防護)
+		document.onkeydown = function(e) {
+			if(event.keyCode == 123) { return false; } // F12
+			if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } // Ctrl+Shift+I
+			if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } // Ctrl+Shift+C
+			if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } // Ctrl+Shift+J
+			if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } // Ctrl+U
+		}
+	</script>
+</head>
+<body>
+
+<div class="nav-home">
+    <a href="../../index.html" class="btn-home">⬅ 回首頁 (Back to Home)</a>
+</div>
+
+<div class="container">
+    <h2>📝 智能語境默書神器</h2>
+
+    <div class="ad-container">
+        <span>Google AdSense 廣告顯示位置</span>
+    </div>
+
+    <div class="section-box">
+        <label>默書內容輸入：</label>
+        <div class="tips">
+            💡 <b>Live 偵測：</b> 自動分辨 [adj] 賴-v (現場) / [v] 力-v (住)。範例：Live[adj] music。<br>
+        </div>
+        <textarea id="text-input" placeholder="請在此輸入英文或中文內容...">I like live[adj] music.
+I live[v] in Hong Kong.</textarea>
+        
+        <div class="action-bar">
+            <div class="action-left">
+                <input id="file-upload" type="file" accept=".txt" style="display:none;"/>
+                <button onclick="document.getElementById('file-upload').click()" class="btn-sm btn-upload">📂 上傳檔案</button>
+                <span id="file-name" style="font-size:12px; color:#888;"></span>
+            </div>
+            <button id="btn-toggle-view" class="btn-sm btn-toggle-eye">👁️ 遮蔽內容 (默書模式)</button>
+        </div>
+    </div>
+
+    <div class="section-box">
+        <div class="controls-row">
+            <div class="control-item">
+                <label>語言</label>
+                <select id="lang-select">
+                    <option value="en-GB">英語 (UK/Commonwealth)</option>
+                    <option value="zh-HK">粵語 (Cantonese)</option>
+                    <option value="zh-CN">普通話 (Mandarin)</option>
+                </select>
+            </div>
+            <div class="control-item">
+                <label>讀字語速: <span id="rate-value">0.8</span>x</label>
+                <input type="range" id="rate-range" min="0.1" max="1.5" step="0.1" value="0.8">
+            </div>
+            <div class="control-item">
+                <label style="color:#3182ce;">字與字停頓: <span id="interval-value">1.5</span>秒</label>
+                <input type="range" id="interval-range" min="0" max="5" step="0.5" value="1.5">
+            </div>
+        </div>
+        <div style="margin-top:15px; display:flex; gap:20px; align-items:center;">
+             <label style="font-weight:normal; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                 <input type="checkbox" id="auto-play-check"> 自動讀下一句
+             </label>
+             <label style="font-weight:normal; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                 <input type="checkbox" id="dictation-mode" checked> 默書模式 (逐字讀)
+             </label>
+        </div>
+    </div>
+
+    <div class="dictation-display">
+        <div class="word-pronunciation" id="pronunciation-display" style="display:none;"></div>
+        <div class="current-word" id="current-word-display">...</div>
+        <div class="full-sentence-preview" id="sentence-preview">準備就緒</div>
+    </div>
+    <div style="text-align:center; color:#888; font-size:12px;" id="progress-indicator">第 0 / 0 句</div>
+
+    <div class="buttons">
+        <button id="btn-prev" class="main-btn nav-btn" disabled>⏮</button>
+        <button id="btn-play" class="main-btn">▶ 開始</button>
+        <button id="btn-pause" class="main-btn" style="display:none;">⏸ 暫停</button>
+        <button id="btn-stop" class="main-btn" disabled>⏹ 停止</button>
+        <button id="btn-next" class="main-btn nav-btn" disabled>⏭</button>
+    </div>
+    
+    <div class="status" id="status-msg"></div>
+
+    <div class="footer">
+        <p>🔒 <strong>隱私權聲明：</strong> 本系統所有文字處理與運算均在您的瀏覽器內完成 (Client-side processing)。我們不會收集您的任何資料。</p>
+        <p><a href="privacy.html">查看完整隱私權政策</a> | © 2026 Playneer Kids</p>
+    </div>
+</div>
+
+<script>
+    const synth = window.speechSynthesis;
+    const textInput = document.getElementById('text-input');
+    const btnToggleView = document.getElementById('btn-toggle-view');
+    const langSelect = document.getElementById('lang-select');
+    const rateRange = document.getElementById('rate-range');
+    const rateValue = document.getElementById('rate-value');
+    const intervalRange = document.getElementById('interval-range');
+    const intervalValue = document.getElementById('interval-value');
+    const autoPlayCheck = document.getElementById('auto-play-check');
+    const dictationModeCheck = document.getElementById('dictation-mode');
+    
+    const currentWordDisplay = document.getElementById('current-word-display');
+    const pronunciationDisplay = document.getElementById('pronunciation-display');
+    const sentencePreview = document.getElementById('sentence-preview');
+    const progressIndicator = document.getElementById('progress-indicator');
+    const statusMsg = document.getElementById('status-msg');
+    
+    const btnPlay = document.getElementById('btn-play');
+    const btnPause = document.getElementById('btn-pause');
+    const btnStop = document.getElementById('btn-stop');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+
+    let sentences = []; let sentenceIndex = 0; let wordQueue = []; let wordIndex = 0;
+    let isPlaying = false; let isPaused = false; let timerId = null; let voices = [];
+    let isMasked = false;
+
+    function init() { populateVoices(); if(speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = populateVoices; }
+    function populateVoices() { voices = synth.getVoices(); }
+    init();
+
+    rateRange.addEventListener('input', () => rateValue.textContent = rateRange.value);
+    intervalRange.addEventListener('input', () => intervalValue.textContent = intervalRange.value);
+    textInput.addEventListener('input', () => { if(!isPlaying && !isPaused) resetPlayer(); });
+    
+    btnToggleView.addEventListener('click', () => {
+        isMasked = !isMasked;
+        if (isMasked) {
+            document.body.classList.add('masked-mode');
+            btnToggleView.textContent = "👁️ 顯示內容"; btnToggleView.style.background = "#2b6cb0";
+        } else {
+            document.body.classList.remove('masked-mode');
+            btnToggleView.textContent = "👁️ 遮蔽內容 (默書模式)"; btnToggleView.style.background = "#ed8936";
+        }
+    });
+
+    document.getElementById('file-upload').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        document.getElementById('file-name').textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = (e) => { textInput.value = e.target.result; resetPlayer(); statusMsg.textContent = "檔案已載入"; };
+        reader.readAsText(file);
+    });
+
+    function splitTextIntoSentences(text) {
+        const regex = /[^.?!;:。？！；：\n]+[.?!;:。？！；：\n]*|.+/g;
+        return (text.match(regex) || []).map(s => s.trim()).filter(s => s.length > 0);
+    }
+
+    function generateDictationQueue(text, lang) {
+        let queue = [];
+        if (lang === 'en-GB') {
+            const rawTokens = text.match(/[\w']+(\[[a-z]+\])?|[^\w\s]/gi) || [];
+            const punctMap = { '.': 'full stop', ',': 'comma', '?': 'question mark', '!': 'exclamation mark', ':': 'colon', ';': 'semi-colon', '(': 'open bracket', ')': 'close bracket', '"': 'quote' };
+            for (let i = 0; i < rawTokens.length; i++) {
+                let token = rawTokens[i], cleanWord = token, speakWord = token, manualTag = null;
+                if (token.includes('[')) {
+                    if (token.toLowerCase().includes('[adj]')) manualTag = 'adj';
+                    else if (token.toLowerCase().includes('[v]')) manualTag = 'v';
+                    cleanWord = token.replace(/\[.*?\]/g, ''); speakWord = cleanWord;
+                }
+                if (punctMap[cleanWord]) queue.push({ display: cleanWord, speak: punctMap[cleanWord], isPunct: true });
+                else {
+                    if (cleanWord.toLowerCase() === 'live') {
+                        if (manualTag === 'adj') speakWord = "lye-v"; else if (manualTag === 'v') speakWord = "liv"; else speakWord = detectLivePronunciation(i, rawTokens);
+                    }
+                    queue.push({ display: cleanWord, speak: speakWord, isPunct: false });
+                }
+            }
+        } else {
+            const punctMap = { '，': '逗號', '。': '句號', '、': '頓號', '？': '問號', '！': '感嘆號', '：': '冒號', '；': '分號', '「': '開引號', '」': '收引號', '（': '括號', '）': '括號完', ',': '逗號', '.': '句號', '?': '問號', '!': '感嘆號' };
+            for (let char of text) {
+                if (['[', ']', 'a', 'd', 'j', 'v'].includes(char) && text.includes('[')) continue; 
+                if (char.trim() === '') continue;
+                if (punctMap[char]) queue.push({ display: char, speak: punctMap[char], isPunct: true });
+                else if (char === '玩' && lang === 'zh-HK') queue.push({ display: '玩', speak: '換', isPunct: false });
+                else queue.push({ display: char, speak: char, isPunct: false });
+            }
+        }
+        return queue;
+    }
+
+    function detectLivePronunciation(idx, tokens) {
+        let pronunciation = "liv"; 
+        const clean = (t) => t ? t.replace(/\[.*?\]/g, '').toLowerCase() : '';
+        const prev = idx > 0 ? clean(tokens[idx - 1]) : '';
+        const next = idx < tokens.length - 1 ? clean(tokens[idx + 1]) : '';
+        const adjK = ['music', 'show', 'band', 'stream', 'broadcast', 'concert', 'performance', 'video', 'radio', 'tv', 'action'];
+        if (adjK.includes(next) || prev === 'real' || ['facebook', 'youtube', 'instagram'].includes(prev)) return "lye-v";
+        if (['in', 'at', 'on', 'with', 'by'].includes(next) || ['i', 'we', 'you', 'they'].includes(prev)) return "liv";
+        return pronunciation; 
+    }
+
+    function startSentence() {
+        if (sentenceIndex >= sentences.length) { statusMsg.textContent = "全部完成"; resetPlayer(); return; }
+        const raw = sentences[sentenceIndex];
+        const lang = langSelect.value;
+        sentencePreview.textContent = raw.replace(/\[.*?\]/g, '');
+        progressIndicator.textContent = `第 ${sentenceIndex + 1} / ${sentences.length} 句`;
+        wordQueue = generateDictationQueue(raw, lang);
+        wordIndex = 0;
+        if (dictationModeCheck.checked) playNextWord();
+        else { let fullSpeak = wordQueue.map(w => w.speak).join(' '); playWholeSentence(fullSpeak, sentencePreview.textContent); }
+    }
+
+    function playNextWord() {
+        if (!isPlaying) return;
+        if (wordIndex >= wordQueue.length) { finishSentence(); return; }
+        const item = wordQueue[wordIndex];
+        currentWordDisplay.textContent = item.display;
+        
+        if (item.isPunct) { pronunciationDisplay.textContent = `讀作: ${item.speak}`; pronunciationDisplay.style.display = 'block'; } 
+        else if (item.display.toLowerCase() === 'live' && item.speak === 'lye-v') { pronunciationDisplay.textContent = `發音: 賴-v (形容詞)`; pronunciationDisplay.style.display = 'block'; } 
+        else { pronunciationDisplay.style.display = 'none'; }
+
+        const u = new SpeechSynthesisUtterance(item.speak);
+        setupVoice(u);
+        u.onend = () => { if (!isPlaying) return; statusMsg.textContent = `停頓...`; timerId = setTimeout(() => { wordIndex++; playNextWord(); }, parseFloat(intervalRange.value) * 1000); };
+        u.onerror = () => { wordIndex++; playNextWord(); }; 
+        statusMsg.textContent = "🔊 朗讀中";
+        synth.speak(u);
+    }
+
+    function playWholeSentence(speakText, displayText) {
+        currentWordDisplay.textContent = displayText; currentWordDisplay.style.fontSize = "24px"; pronunciationDisplay.style.display = 'none';
+        const u = new SpeechSynthesisUtterance(speakText); setupVoice(u);
+        u.onend = () => finishSentence(); synth.speak(u);
+    }
+
+    function finishSentence() {
+        if (autoPlayCheck.checked && isPlaying) { statusMsg.textContent = "準備下一句..."; currentWordDisplay.style.fontSize = "60px"; timerId = setTimeout(() => { sentenceIndex++; startSentence(); }, 1000); } 
+        else { isPlaying = false; wordIndex = 0; statusMsg.textContent = "本句結束"; currentWordDisplay.style.fontSize = "60px"; updateUI(); }
+    }
+
+    function setupVoice(u) {
+        u.lang = langSelect.value; u.rate = parseFloat(rateRange.value);
+        let v = voices.find(v => v.lang === u.lang) || voices.find(v => v.lang.startsWith(u.lang.split('-')[0]));
+        if (u.lang === 'en-GB') v = voices.find(v => v.lang === 'en-GB' && v.name.includes('Google')) || voices.find(v => v.lang === 'en-GB');
+        if (v) u.voice = v;
+    }
+
+    btnPlay.addEventListener('click', () => {
+        if (sentences.length === 0) { const txt = textInput.value.trim(); if (!txt) { alert("請輸入文字"); return; } sentences = splitTextIntoSentences(txt); }
+        isPlaying = true; isPaused = false;
+        if (wordIndex === 0 && sentenceIndex < sentences.length) startSentence(); else if (wordQueue.length > 0) playNextWord(); else startSentence();
+        updateUI();
+    });
+
+    btnPause.addEventListener('click', () => { isPlaying = false; isPaused = true; synth.cancel(); clearTimeout(timerId); statusMsg.textContent = "已暫停"; updateUI(); });
+    btnStop.addEventListener('click', resetPlayer);
+    btnPrev.addEventListener('click', () => { if(sentenceIndex>0){ sentenceIndex--; resetForNavigation();} });
+    btnNext.addEventListener('click', () => { if(sentenceIndex<sentences.length-1){ sentenceIndex++; resetForNavigation();} });
+    
+    function resetForNavigation() { isPlaying=false; isPaused=false; synth.cancel(); clearTimeout(timerId); wordIndex=0; wordQueue=[]; 
+        sentencePreview.textContent = sentences[sentenceIndex].replace(/\[.*?\]/g, ''); currentWordDisplay.textContent = "..."; progressIndicator.textContent = `第 ${sentenceIndex + 1} / ${sentences.length} 句`; updateUI(); }
+    
+    function resetPlayer() { isPlaying=false; isPaused=false; synth.cancel(); clearTimeout(timerId); sentenceIndex=0; wordIndex=0; wordQueue=[]; sentences=[]; currentWordDisplay.textContent="..."; sentencePreview.textContent="準備就緒"; progressIndicator.textContent="第 0 / 0 句"; statusMsg.textContent="已重置"; updateUI(); }
+
+    function updateUI() {
+        if (isPlaying) { btnPlay.style.display = 'none'; btnPause.style.display = 'inline-block'; btnStop.disabled = false; textInput.disabled = true; dictationModeCheck.disabled = true; } 
+        else { btnPlay.textContent = (isPaused) ? "▶ 繼續" : ((sentences.length > 0 && wordIndex === 0) ? "▶ 朗讀此句" : "▶ 開始"); btnPlay.style.display = 'inline-block'; btnPause.style.display = 'none'; btnStop.disabled = !(sentences.length > 0 || textInput.value.trim().length > 0); if (sentences.length > 0) { btnPrev.disabled = (sentenceIndex===0); btnNext.disabled = (sentenceIndex>=sentences.length-1); } else { btnPrev.disabled=true; btnNext.disabled=true; } textInput.disabled = false; dictationModeCheck.disabled = false; }
+    }
+</script>
+
+</body>
+</html>

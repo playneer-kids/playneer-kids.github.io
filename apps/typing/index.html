@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4018994426619685" crossorigin="anonymous"></script>
+    <title>Type Master Global</title>
+    <style>
+        /* 保持原有的遊戲特定樣式 */
+        body { 
+            font-family: 'Consolas', 'Courier New', monospace; 
+            background-color: #121212; 
+            color: #e0e0e0; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh;
+            overflow-y: auto; 
+            padding-bottom: 50px; 
+        }
+
+        .main-container { 
+            display: flex; 
+            width: 100%; 
+            max-width: 1600px; 
+            height: 90vh; 
+            flex-shrink: 0; 
+            border-bottom: 1px solid #333; 
+        }
+
+        .game-section { flex: 3; display: flex; flex-direction: column; border-right: 2px solid #333; }
+        
+        /* Modified Top Bar for Home Link */
+        .top-bar { background: #1a1a1a; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        .home-link { text-decoration: none; color: #4a90e2; font-weight: bold; font-family: sans-serif; display: flex; align-items: center; gap: 5px; font-size: 14px; }
+        .home-link:hover { color: #63b3ed; }
+
+        .lang-select { background: #333; color: #fff; border: 1px solid #555; padding: 5px; border-radius: 4px; font-size: 0.9rem; cursor: pointer; }
+
+        .control-panel { background: #1f1f1f; padding: 15px; border-bottom: 3px solid #333; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 10px; }
+        .tab-btn { background: #333; border: none; color: #aaa; padding: 8px 16px; cursor: pointer; border-radius: 4px 4px 0 0; transition: background 0.2s; }
+        .tab-btn:hover { background: #444; }
+        .tab-btn.active { background: #2c3e50; color: #fff; font-weight: bold; border-bottom: 2px solid #3498db; }
+        .mode-content { display: none; padding: 10px; background: #2c3e50; border-radius: 0 4px 4px 4px; margin-bottom: 10px;}
+        .mode-content.active { display: block; }
+        input[type="text"], input[type="number"] { padding: 5px; background: #ecf0f1; border: none; border-radius: 3px; color: #2c3e50; font-weight: bold; }
+        label { margin-right: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+        select.game-opt { padding: 5px; background: #ecf0f1; border-radius: 3px; color: #2c3e50; font-weight: bold; cursor: pointer;}
+        .action-btns { margin-top: 10px; display: flex; gap: 10px; align-items: center; }
+        button.start { background: #27ae60; color: white; border: none; padding: 10px 20px; font-size: 1rem; cursor: pointer; border-radius: 4px; }
+        button.start:hover { background: #2ecc71; }
+        button.stop { background: #c0392b; color: white; border: none; padding: 10px 20px; font-size: 1rem; cursor: pointer; border-radius: 4px; display: none; }
+        button.stop:hover { background: #e74c3c; }
+        button.small-btn { padding: 3px 8px; font-size: 0.8rem; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        
+        #game-area { position: relative; flex-grow: 1; background: #000; overflow: hidden; }
+        #deadline { position: absolute; bottom: 60px; width: 100%; height: 2px; background-color: #e74c3c; box-shadow: 0 0 10px #e74c3c; z-index: 10; }
+        #deadline::after { content: "DEADLINE"; position: absolute; right: 10px; top: -20px; color: #e74c3c; font-size: 12px; }
+        .falling-char { position: absolute; font-size: 28px; font-weight: bold; color: #00ff00; text-shadow: 0 0 5px #00ff00; user-select: none; }
+        .falling-char.missed { color: #555 !important; text-shadow: none; }
+        .status-bar { background: #222; padding: 5px 15px; display: flex; justify-content: space-between; font-size: 1.2rem; }
+        
+        .sidebar { flex: 1.2; background: #1a1a1a; padding: 20px; overflow-y: hidden; min-width: 320px; display: flex; flex-direction: column; }
+        .history-controls { background: #252525; padding: 10px; border-radius: 5px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .history-row { display: flex; justify-content: space-between; align-items: center; }
+        .table-container { overflow-y: auto; flex-grow: 1; }
+        .score-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .score-table td, .score-table th { padding: 8px 5px; border-bottom: 1px solid #333; text-align: left; }
+        .score-table th { color: #f1c40f; position: sticky; top: 0; background: #1a1a1a; }
+        .tag { font-size: 0.75rem; padding: 2px 4px; border-radius: 3px; background: #333; margin-left: 2px; color: #aaa; }
+        .tag.spd { background: #2980b9; color: white; }
+        
+        .ad-container { background-color: #2c2c2c; border: 1px dashed #555; margin-bottom: 15px; padding: 10px; text-align: center; color: #888; font-size: 0.8rem; overflow: hidden; }
+        .sidebar-ad { min-height: 250px; display: flex; align-items: center; justify-content: center; }
+        .banner-ad { width: 100%; min-height: 90px; margin-top: 10px; }
+
+        #game-over-modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.95); padding: 40px; border-radius: 15px; text-align: center; border: 2px solid #f1c40f; z-index: 100; min-width: 300px; }
+    </style>
+   	<style>
+		/* 禁止選取文字 */
+		body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+	</style>
+	<script>
+		// 禁止右鍵選單
+		document.addEventListener('contextmenu', event => event.preventDefault());
+		// 禁止 F12 和一些快捷鍵 (僅作簡單防護)
+		document.onkeydown = function(e) {
+			if(event.keyCode == 123) { return false; } // F12
+			if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } // Ctrl+Shift+I
+			if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } // Ctrl+Shift+C
+			if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } // Ctrl+Shift+J
+			if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } // Ctrl+U
+		}
+	</script>
+    </head>
+<body>
+
+<div class="main-container">
+    <div class="game-section">
+        <div class="top-bar">
+            <a href="../../index.html" class="home-link">⬅ Home</a>
+
+            <select id="lang-selector" class="lang-select" onchange="changeLanguage(this.value)">
+                <option value="en">English</option>
+                <option value="zh-TW">繁體中文</option>
+                <option value="zh-CN">简体中文</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
+                <option value="fr">Français</option>
+                <option value="pt">Português</option>
+                <option value="ru">Русский</option>
+                <option value="th">ไทย</option>
+            </select>
+        </div>
+
+        <div class="control-panel">
+            <div class="tabs">
+                <button id="tab-challenge" class="tab-btn active" onclick="switchMode('challenge')" data-i18n="tab_challenge">Challenge Mode</button>
+                <button id="tab-practice" class="tab-btn" onclick="switchMode('practice')" data-i18n="tab_practice">Practice Mode</button>
+            </div>
+
+            <div id="panel-challenge" class="mode-content active">
+                <label><span data-i18n="lbl_level">Level</span>: <select id="level-select" class="game-opt"></select></label><br><br>
+                <span data-i18n="lbl_extra">Extra: </span>
+                <label><input type="checkbox" id="chk-digits"> <span data-i18n="chk_digits">Digits (0-9)</span></label>
+                <label><input type="checkbox" id="chk-symbols"> <span data-i18n="chk_symbols">Symbols</span></label>
+            </div>
+
+            <div id="panel-practice" class="mode-content">
+                <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #bdc3c7;" data-i18n="lbl_practice_tip">Enter characters to practice:</p>
+                <input type="text" id="custom-chars" placeholder="..." autocomplete="off" style="width: 250px;">
+            </div>
+
+            <div class="action-btns">
+                <label><span data-i18n="lbl_speed">Speed</span>: 
+                    <select id="speed-select" class="game-opt">
+                        <option value="0.8" data-i18n="opt_speed_turtle">🐢 Turtle</option>
+                        <option value="1.5" data-i18n="opt_speed_slow">🚶 Slow</option>
+                        <option value="3" selected data-i18n="opt_speed_std">🏃 Standard</option>
+                        <option value="5" data-i18n="opt_speed_fast">🏎️ Fast</option>
+                        <option value="8" data-i18n="opt_speed_extreme">🚀 Extreme</option>
+                    </select>
+                </label>
+                
+                <button id="btn-start" class="start" onclick="startGame()" data-i18n="btn_start">Start Game</button>
+                <button id="btn-stop" class="stop" onclick="stopGame()" data-i18n="btn_stop">⛔ Stop Game</button>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <span style="color: #f1c40f"><span data-i18n="lbl_score">Score</span>: <span id="current-score">0</span></span>
+            <span style="color: #3498db"><span data-i18n="lbl_time">Time</span>: <span id="time-left">60</span>s</span>
+        </div>
+
+        <div id="game-area">
+            <div id="deadline"></div>
+        </div>
+
+        <div class="ad-container banner-ad">
+            <span>Ads (Banner)</span>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h3 style="color: #f1c40f; margin-top:0; border-bottom: 1px solid #555; padding-bottom: 10px;" data-i18n="lbl_history">🏆 History</h3>
+        
+        <div class="ad-container sidebar-ad">
+            <span>Ads (Sidebar)</span>
+        </div>
+
+        <div class="history-controls">
+            <div class="history-row">
+                <label style="font-size:0.9rem; margin:0;" data-i18n="lbl_sort">Sort:</label>
+                <select id="hist-sort" onchange="renderHistory()" class="game-opt" style="width: 120px; font-size:0.85rem;">
+                    <option value="time" data-i18n="opt_sort_time">🕒 Time</option>
+                    <option value="score" data-i18n="opt_sort_score">👑 Score</option>
+                    <option value="level" data-i18n="opt_sort_level">🆙 Level</option>
+                </select>
+            </div>
+            <div class="history-row">
+                <label style="font-size:0.9rem; margin:0;" data-i18n="lbl_filter">Filter Lv:</label>
+                <input type="number" id="hist-filter-lv" placeholder="1-52" min="1" max="52" oninput="validateInput(this); renderHistory()" style="width: 110px; font-size:0.85rem;">
+            </div>
+            <div class="history-row" style="justify-content: flex-end; margin-top:5px;">
+                <button onclick="clearHistory()" class="small-btn" style="background:#c0392b;" data-i18n="btn_clear">🗑️ Clear All</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="score-table">
+                <thead><tr>
+                    <th data-i18n="th_time">Time</th>
+                    <th data-i18n="th_detail">Detail</th>
+                    <th data-i18n="th_score">Score</th>
+                </tr></thead>
+                <tbody id="score-history-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div> 
+<div style="max-width: 1000px; margin: 30px auto; padding: 30px; background: #1a1a1a; color: #b0b0b0; border-radius: 10px; border: 1px solid #333; line-height: 1.8;">
+    
+    <h2 style="color: #f1c40f; border-bottom: 1px dashed #555; padding-bottom: 10px; margin-bottom: 20px;">About Type Master Global</h2>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 40px;">
+        <div style="flex: 1; min-width: 300px;">
+            <h3 style="color: #e0e0e0; margin-top: 0;">🚀 Game Features</h3>
+            <p>Type Master Global is a comprehensive web-based typing game designed to improve your typing speed and accuracy through gamified challenges. Unlike traditional typing tests, this game offers:</p>
+            <ul style="padding-left: 20px;">
+                <li><strong>Global Language Support:</strong> Practice in 11 different languages including English, Chinese, Japanese, Korean, and more.</li>
+                <li><strong>52 Progressive Levels:</strong> Start with simple single-letter drops and progress to intense 52-character randomized storms.</li>
+                <li><strong>Customizable Difficulty:</strong> Five speed settings ranging from "Turtle" to "Extreme".</li>
+                <li><strong>Dual Modes:</strong> Choose "Challenge Mode" for ranked gameplay or "Practice Mode" for specific keys.</li>
+            </ul>
+        </div>
+
+        <div style="flex: 1; min-width: 300px;">
+            <h3 style="color: #e0e0e0; margin-top: 0;">🎮 How to Play</h3>
+            <ol style="padding-left: 20px;">
+                <li><strong>Select Your Settings:</strong> Choose your preferred language, level, and speed.</li>
+                <li><strong>Defend the Line:</strong> Characters will fall from the top. Type the corresponding key before they hit the red <strong>"DEADLINE"</strong>.</li>
+                <li><strong>Score Points:</strong> Each successful hit grants you points. Crossing the deadline counts as a miss.</li>
+                <li><strong>Beat the Clock:</strong> You have 60 seconds to achieve the highest score possible.</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+
+<div id="game-over-modal">
+    <h2 style="color: #fff;" data-i18n="modal_title">Game Over</h2>
+    <p><span data-i18n="modal_score">Final Score</span>: <span id="final-score" style="font-size: 3rem; color: #f1c40f; display:block; margin: 10px 0;"></span></p>
+    <button onclick="closeModal()" style="background:#27ae60; color:white; border:none; padding: 10px 20px; cursor:pointer; font-size:1rem; border-radius:4px;" data-i18n="modal_close">Close</button>
+</div>
+
+<footer style="text-align:center; padding: 20px; font-size: 0.8rem; color: #555; width: 100%;">
+    &copy; 2026 Type Master Global. <a href="privacy.html" style="color: #777;">Privacy Policy</a>
+</footer>
+
+<script>
+    const translations = {
+        "en": {
+            tab_challenge: "🔥 Challenge", tab_practice: "🛠️ Practice",
+            lbl_level: "Level", lbl_extra: "Extra:", chk_digits: "Digits (0-9)", chk_symbols: "Symbols",
+            lbl_practice_tip: "Enter characters to practice:", lbl_speed: "Speed",
+            opt_speed_turtle: "🐢 Turtle", opt_speed_slow: "🚶 Slow", opt_speed_std: "🏃 Standard", opt_speed_fast: "🏎️ Fast", opt_speed_extreme: "🚀 Extreme",
+            btn_start: "Start Game", btn_stop: "⛔ Stop",
+            lbl_score: "Score", lbl_time: "Time",
+            lbl_history: "🏆 History", lbl_sort: "Sort:", lbl_filter: "Filter Lv:", btn_clear: "🗑️ Clear",
+            opt_sort_time: "🕒 Time", opt_sort_score: "👑 Score", opt_sort_level: "🆙 Level",
+            th_time: "Time", th_detail: "Detail", th_score: "Score",
+            modal_title: "Game Over", modal_score: "Final Score", modal_close: "Close",
+            msg_terminated: "Game Terminated.", msg_input_empty: "Please enter characters first!", msg_confirm_clear: "Clear all history?"
+        },
+        "zh-TW": {
+            tab_challenge: "🔥 挑戰模式", tab_practice: "🛠️ 練習模式",
+            lbl_level: "關卡", lbl_extra: "額外:", chk_digits: "數字 (0-9)", chk_symbols: "符號",
+            lbl_practice_tip: "輸入你想練習的字串:", lbl_speed: "速度",
+            opt_speed_turtle: "🐢 龜速", opt_speed_slow: "🚶 慢速", opt_speed_std: "🏃 標準", opt_speed_fast: "🏎️ 快速", opt_speed_extreme: "🚀 極速",
+            btn_start: "開始遊戲", btn_stop: "⛔ 終止遊戲",
+            lbl_score: "分數", lbl_time: "時間",
+            lbl_history: "🏆 歷史記錄", lbl_sort: "排序:", lbl_filter: "篩選關卡:", btn_clear: "🗑️ 清除",
+            opt_sort_time: "🕒 時間", opt_sort_score: "👑 分數", opt_sort_level: "🆙 關卡",
+            th_time: "時間", th_detail: "詳情", th_score: "分數",
+            modal_title: "遊戲結束", modal_score: "最終分數", modal_close: "關閉",
+            msg_terminated: "遊戲已終止，不記錄分數。", msg_input_empty: "請先輸入要練習的字母！", msg_confirm_clear: "確定要刪除所有記錄嗎？"
+        },
+        "zh-CN": {
+            tab_challenge: "🔥 挑战模式", tab_practice: "🛠️ 练习模式",
+            lbl_level: "关卡", lbl_extra: "额外:", chk_digits: "数字 (0-9)", chk_symbols: "符号",
+            lbl_practice_tip: "输入你想练习的字符串:", lbl_speed: "速度",
+            opt_speed_turtle: "🐢 龟速", opt_speed_slow: "🚶 慢速", opt_speed_std: "🏃 标准", opt_speed_fast: "🏎️ 快速", opt_speed_extreme: "🚀 极速",
+            btn_start: "开始游戏", btn_stop: "⛔ 终止游戏",
+            lbl_score: "分数", lbl_time: "时间",
+            lbl_history: "🏆 历史记录", lbl_sort: "排序:", lbl_filter: "筛选关卡:", btn_clear: "🗑️ 清除",
+            opt_sort_time: "🕒 时间", opt_sort_score: "👑 分数", opt_sort_level: "🆙 关卡",
+            th_time: "时间", th_detail: "详情", th_score: "分数",
+            modal_title: "游戏结束", modal_score: "最终分数", modal_close: "关闭",
+            msg_terminated: "游戏已终止。", msg_input_empty: "请先输入要练习的字母！", msg_confirm_clear: "确定要删除所有记录吗？"
+        },
+        "ja": {
+            tab_challenge: "🔥 チャレンジ", tab_practice: "🛠️ 練習モード",
+            lbl_level: "レベル", lbl_extra: "追加:", chk_digits: "数字 (0-9)", chk_symbols: "記号",
+            lbl_practice_tip: "練習したい文字を入力:", lbl_speed: "速度",
+            opt_speed_turtle: "🐢 亀", opt_speed_slow: "🚶 遅い", opt_speed_std: "🏃 普通", opt_speed_fast: "🏎️ 速い", opt_speed_extreme: "🚀 極限",
+            btn_start: "スタート", btn_stop: "⛔ 中止",
+            lbl_score: "スコア", lbl_time: "残り時間",
+            lbl_history: "🏆 履歴", lbl_sort: "並替:", lbl_filter: "Lv検索:", btn_clear: "🗑️ 削除",
+            opt_sort_time: "🕒 日時", opt_sort_score: "👑 スコア", opt_sort_level: "🆙 レベル",
+            th_time: "日時", th_detail: "詳細", th_score: "スコア",
+            modal_title: "ゲームオーバー", modal_score: "最終スコア", modal_close: "閉じる",
+            msg_terminated: "ゲームを中止しました。", msg_input_empty: "文字を入力してください！", msg_confirm_clear: "履歴を全消去しますか？"
+        },
+        "ko": {
+            tab_challenge: "🔥 챌린지", tab_practice: "🛠️ 연습 모드",
+            lbl_level: "레벨", lbl_extra: "추가:", chk_digits: "숫자 (0-9)", chk_symbols: "기호",
+            lbl_practice_tip: "연습할 문자를 입력:", lbl_speed: "속도",
+            opt_speed_turtle: "🐢 거북이", opt_speed_slow: "🚶 느림", opt_speed_std: "🏃 보통", opt_speed_fast: "🏎️ 빠름", opt_speed_extreme: "🚀 극한",
+            btn_start: "게임 시작", btn_stop: "⛔ 중지",
+            lbl_score: "점수", lbl_time: "시간",
+            lbl_history: "🏆 기록", lbl_sort: "정렬:", lbl_filter: "Lv 필터:", btn_clear: "🗑️ 삭제",
+            opt_sort_time: "🕒 시간", opt_sort_score: "👑 점수", opt_sort_level: "🆙 레벨",
+            th_time: "시간", th_detail: "상세", th_score: "점수",
+            modal_title: "게임 종료", modal_score: "최종 점수", modal_close: "닫기",
+            msg_terminated: "게임이 중지되었습니다.", msg_input_empty: "문자를 먼저 입력하세요!", msg_confirm_clear: "모든 기록을 삭제하시겠습니까?"
+        },
+        "es": {
+            tab_challenge: "🔥 Desafío", tab_practice: "🛠️ Práctica",
+            lbl_level: "Nivel", lbl_extra: "Extra:", chk_digits: "Dígitos (0-9)", chk_symbols: "Símbolos",
+            lbl_practice_tip: "Ingresa caracteres:", lbl_speed: "Velocidad",
+            opt_speed_turtle: "🐢 Tortuga", opt_speed_slow: "🚶 Lento", opt_speed_std: "🏃 Normal", opt_speed_fast: "🏎️ Rápido", opt_speed_extreme: "🚀 Extremo",
+            btn_start: "Iniciar", btn_stop: "⛔ Detener",
+            lbl_score: "Puntos", lbl_time: "Tiempo",
+            lbl_history: "🏆 Historial", lbl_sort: "Orden:", lbl_filter: "Filtro Lv:", btn_clear: "🗑️ Borrar",
+            opt_sort_time: "🕒 Fecha", opt_sort_score: "👑 Puntos", opt_sort_level: "🆙 Nivel",
+            th_time: "Fecha", th_detail: "Detalle", th_score: "Puntos",
+            modal_title: "Juego Terminado", modal_score: "Puntuación Final", modal_close: "Cerrar",
+            msg_terminated: "Juego terminado.", msg_input_empty: "¡Ingresa caracteres!", msg_confirm_clear: "¿Borrar historial?"
+        },
+        "de": {
+            tab_challenge: "🔥 Herausforderung", tab_practice: "🛠️ Übung",
+            lbl_level: "Stufe", lbl_extra: "Extra:", chk_digits: "Ziffern (0-9)", chk_symbols: "Symbole",
+            lbl_practice_tip: "Zeichen eingeben:", lbl_speed: "Tempo",
+            opt_speed_turtle: "🐢 Schildkröte", opt_speed_slow: "🚶 Langsam", opt_speed_std: "🏃 Standard", opt_speed_fast: "🏎️ Schnell", opt_speed_extreme: "🚀 Extrem",
+            btn_start: "Starten", btn_stop: "⛔ Stoppen",
+            lbl_score: "Punkte", lbl_time: "Zeit",
+            lbl_history: "🏆 Verlauf", lbl_sort: "Sort:", lbl_filter: "Lv Filter:", btn_clear: "🗑️ Leeren",
+            opt_sort_time: "🕒 Zeit", opt_sort_score: "👑 Punkte", opt_sort_level: "🆙 Stufe",
+            th_time: "Zeit", th_detail: "Details", th_score: "Punkte",
+            modal_title: "Spiel Vorbei", modal_score: "Endpunktzahl", modal_close: "Schließen",
+            msg_terminated: "Spiel beendet.", msg_input_empty: "Bitte Zeichen eingeben!", msg_confirm_clear: "Verlauf löschen?"
+        },
+        "fr": {
+            tab_challenge: "🔥 Défi", tab_practice: "🛠️ Pratique",
+            lbl_level: "Niveau", lbl_extra: "Extra:", chk_digits: "Chiffres (0-9)", chk_symbols: "Symboles",
+            lbl_practice_tip: "Entrez des caractères:", lbl_speed: "Vitesse",
+            opt_speed_turtle: "🐢 Tortue", opt_speed_slow: "🚶 Lent", opt_speed_std: "🏃 Standard", opt_speed_fast: "🏎️ Rapide", opt_speed_extreme: "🚀 Extrême",
+            btn_start: "Démarrer", btn_stop: "⛔ Arrêter",
+            lbl_score: "Score", lbl_time: "Temps",
+            lbl_history: "🏆 Historique", lbl_sort: "Trier:", lbl_filter: "Filtrer Lv:", btn_clear: "🗑️ Effacer",
+            opt_sort_time: "🕒 Date", opt_sort_score: "👑 Score", opt_sort_level: "🆙 Niveau",
+            th_time: "Date", th_detail: "Détail", th_score: "Score",
+            modal_title: "Jeu Terminé", modal_score: "Score Final", modal_close: "Fermer",
+            msg_terminated: "Jeu arrêté.", msg_input_empty: "Entrez des caractères!", msg_confirm_clear: "Effacer l'historique?"
+        },
+        "pt": {
+            tab_challenge: "🔥 Desafio", tab_practice: "🛠️ Prática",
+            lbl_level: "Nível", lbl_extra: "Extra:", chk_digits: "Dígitos (0-9)", chk_symbols: "Símbolos",
+            lbl_practice_tip: "Digite os caracteres:", lbl_speed: "Velocidade",
+            opt_speed_turtle: "🐢 Tartaruga", opt_speed_slow: "🚶 Lento", opt_speed_std: "🏃 Padrão", opt_speed_fast: "🏎️ Rápido", opt_speed_extreme: "🚀 Extremo",
+            btn_start: "Iniciar", btn_stop: "⛔ Parar",
+            lbl_score: "Pontos", lbl_time: "Tempo",
+            lbl_history: "🏆 Histórico", lbl_sort: "Ordem:", lbl_filter: "Filtrar Lv:", btn_clear: "🗑️ Limpar",
+            opt_sort_time: "🕒 Data", opt_sort_score: "👑 Pontos", opt_sort_level: "🆙 Nível",
+            th_time: "Data", th_detail: "Detalhe", th_score: "Pontos",
+            modal_title: "Fim de Jogo", modal_score: "Pontuação", modal_close: "Fechar",
+            msg_terminated: "Jogo terminado.", msg_input_empty: "Digite caracteres!", msg_confirm_clear: "Limpar histórico?"
+        },
+        "ru": {
+            tab_challenge: "🔥 Вызов", tab_practice: "🛠️ Практика",
+            lbl_level: "Уровень", lbl_extra: "Доп:", chk_digits: "Цифры (0-9)", chk_symbols: "Символы",
+            lbl_practice_tip: "Введите символы:", lbl_speed: "Скорость",
+            opt_speed_turtle: "🐢 Черепаха", opt_speed_slow: "🚶 Медленно", opt_speed_std: "🏃 Обычно", opt_speed_fast: "🏎️ Быстро", opt_speed_extreme: "🚀 Экстрим",
+            btn_start: "Старт", btn_stop: "⛔ Стоп",
+            lbl_score: "Счет", lbl_time: "Время",
+            lbl_history: "🏆 История", lbl_sort: "Сорт:", lbl_filter: "Фильтр Lv:", btn_clear: "🗑️ Очистить",
+            opt_sort_time: "🕒 Время", opt_sort_score: "👑 Счет", opt_sort_level: "🆙 Уровень",
+            th_time: "Время", th_detail: "Детали", th_score: "Счет",
+            modal_title: "Конец игры", modal_score: "Итог", modal_close: "Закрыть",
+            msg_terminated: "Игра прервана.", msg_input_empty: "Введите символы!", msg_confirm_clear: "Очистить историю?"
+        },
+        "th": {
+            tab_challenge: "🔥 ความท้าทาย", tab_practice: "🛠️ ฝึกฝน",
+            lbl_level: "ระดับ", lbl_extra: "พิเศษ:", chk_digits: "ตัวเลข (0-9)", chk_symbols: "สัญลักษณ์",
+            lbl_practice_tip: "ป้อนตัวอักษรเพื่อฝึก:", lbl_speed: "ความเร็ว",
+            opt_speed_turtle: "🐢 เต่า", opt_speed_slow: "🚶 ช้า", opt_speed_std: "🏃 ปกติ", opt_speed_fast: "🏎️ เร็ว", opt_speed_extreme: "🚀 สุดขีด",
+            btn_start: "เริ่มเกม", btn_stop: "⛔ หยุดเกม",
+            lbl_score: "คะแนน", lbl_time: "เวลา",
+            lbl_history: "🏆 ประวัติ", lbl_sort: "เรียง:", lbl_filter: "กรอง Lv:", btn_clear: "🗑️ ล้าง",
+            opt_sort_time: "🕒 เวลา", opt_sort_score: "👑 คะแนน", opt_sort_level: "🆙 ระดับ",
+            th_time: "เวลา", th_detail: "รายละเอียด", th_score: "คะแนน",
+            modal_title: "จบเกม", modal_score: "คะแนนรวม", modal_close: "ปิด",
+            msg_terminated: "หยุดเกมแล้ว", msg_input_empty: "กรุณาป้อนตัวอักษรก่อน!", msg_confirm_clear: "ล้างประวัติทั้งหมด?"
+        }
+    };
+
+    let currentLang = localStorage.getItem('game_lang') || 'en';
+    const CHARS_LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const CHARS_DIGITS = "0123456789";
+    const CHARS_SYMBOLS = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const levelSelect = document.getElementById('level-select');
+        for (let i = 1; i <= 52; i++) {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.innerHTML = "Level " + i;
+            levelSelect.appendChild(opt);
+        }
+        document.getElementById('lang-selector').value = currentLang;
+        applyLanguage(currentLang);
+        renderHistory();
+    });
+
+    let currentMode = 'challenge';
+    let gameState = {
+        active: false, score: 0, timeLeft: 60,
+        pool: [], letters: [], speed: 3, lastSpawnTime: 0, spawnInterval: 800,
+        animationFrameId: null, timerId: null
+    };
+
+    const gameArea = document.getElementById('game-area');
+
+    function changeLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('game_lang', lang);
+        applyLanguage(lang);
+    }
+
+    function applyLanguage(lang) {
+        const t = translations[lang];
+        if (!t) return;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (t[key]) {
+                if(el.tagName === 'INPUT' && el.type === 'text') {
+                    el.placeholder = t[key];
+                } else {
+                    el.innerText = t[key];
+                }
+            }
+        });
+        const levelSelect = document.getElementById('level-select');
+        const levelText = t['lbl_level'] || "Level";
+        for(let opt of levelSelect.options) {
+            opt.text = `${levelText} ${opt.value}`;
+        }
+    }
+
+    function switchMode(mode) {
+        currentMode = mode;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.mode-content').forEach(d => d.classList.remove('active'));
+        if(mode === 'challenge') {
+            document.getElementById('tab-challenge').classList.add('active');
+            document.getElementById('panel-challenge').classList.add('active');
+        } else {
+            document.getElementById('tab-practice').classList.add('active');
+            document.getElementById('panel-practice').classList.add('active');
+            setTimeout(() => document.getElementById('custom-chars').focus(), 100);
+        }
+    }
+
+    function getTrans(key) {
+        return translations[currentLang][key] || translations['en'][key];
+    }
+
+    function startGame() {
+        if (gameState.active) return;
+        let customInput = document.getElementById('custom-chars').value;
+        if (currentMode === 'practice' && customInput.trim() === '') {
+            alert(getTrans('msg_input_empty'));
+            document.getElementById('custom-chars').focus();
+            return;
+        }
+        resetGameUI();
+        closeModal();
+        document.getElementById('btn-start').style.display = 'none';
+        document.getElementById('btn-stop').style.display = 'block';
+        gameState.speed = parseFloat(document.getElementById('speed-select').value);
+        gameState.spawnInterval = 1000 - (gameState.speed * 80); 
+        if (gameState.spawnInterval < 200) gameState.spawnInterval = 200;
+        gameState.pool = generatePool();
+        if (!gameState.pool || gameState.pool.length === 0) {
+            alert("Error: Pool empty");
+            stopGame();
+            return;
+        }
+        gameState.active = true;
+        gameState.timerId = setInterval(() => {
+            gameState.timeLeft--;
+            document.getElementById('time-left').innerText = gameState.timeLeft;
+            if (gameState.timeLeft <= 0) {
+                endGame(true);
+            }
+        }, 1000);
+        requestAnimationFrame(gameLoop);
+    }
+
+    function generatePool() {
+        let pool = [];
+        if (currentMode === 'practice') {
+            let input = document.getElementById('custom-chars').value;
+            pool = Array.from(new Set(input.split(''))).filter(c => c.trim() !== '');
+        } else {
+            let source = CHARS_LETTERS;
+            if(document.getElementById('chk-digits').checked) source += CHARS_DIGITS;
+            if(document.getElementById('chk-symbols').checked) source += CHARS_SYMBOLS;
+            let level = parseInt(document.getElementById('level-select').value);
+            let sampleSize = Math.min(level, source.length);
+            let sourceArray = source.split('');
+            let result = [];
+            for (let i = 0; i < sampleSize; i++) {
+                let idx = Math.floor(Math.random() * sourceArray.length);
+                result.push(sourceArray[idx]);
+                sourceArray.splice(idx, 1);
+            }
+            pool = result;
+        }
+        return pool;
+    }
+
+    function stopGame() {
+        if (!gameState.active) return;
+        gameState.active = false;
+        clearInterval(gameState.timerId);
+        cancelAnimationFrame(gameState.animationFrameId);
+        document.querySelectorAll('.falling-char').forEach(e => e.remove());
+        document.getElementById('btn-start').style.display = 'block';
+        document.getElementById('btn-stop').style.display = 'none';
+        resetGameUI();
+        alert(getTrans('msg_terminated'));
+    }
+
+    function endGame(saveRecord) {
+        gameState.active = false;
+        clearInterval(gameState.timerId);
+        cancelAnimationFrame(gameState.animationFrameId);
+        document.getElementById('btn-start').style.display = 'block';
+        document.getElementById('btn-stop').style.display = 'none';
+        document.getElementById('final-score').innerText = gameState.score;
+        document.getElementById('game-over-modal').style.display = 'block';
+        if (saveRecord && currentMode === 'challenge') {
+            saveScore(document.getElementById('level-select').value, gameState.score);
+        }
+    }
+
+    function resetGameUI() {
+        gameState.score = 0;
+        gameState.timeLeft = 60;
+        gameState.letters = [];
+        gameState.lastSpawnTime = 0;
+        document.getElementById('current-score').innerText = "0";
+        document.getElementById('time-left').innerText = "60";
+        document.querySelectorAll('.falling-char').forEach(e => e.remove());
+    }
+
+    function gameLoop(timestamp) {
+        if (!gameState.active) return;
+        if (timestamp - gameState.lastSpawnTime > gameState.spawnInterval) {
+            spawnRandomChar();
+            gameState.lastSpawnTime = timestamp + (Math.random() * 200); 
+        }
+        const limit = gameArea.clientHeight - 60; 
+        gameState.letters.forEach(obj => {
+            if (obj.y < gameArea.clientHeight) {
+                obj.y += gameState.speed;
+                obj.el.style.top = obj.y + 'px';
+                if (obj.active && obj.y >= limit) {
+                    obj.active = false;
+                    obj.el.classList.add('missed');
+                }
+            } else {
+                if (obj.el.parentNode) obj.el.remove();
+            }
+        });
+        gameState.letters = gameState.letters.filter(obj => obj.y < gameArea.clientHeight);
+        gameState.animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function spawnRandomChar() {
+        if (gameState.pool.length === 0) return;
+        const char = gameState.pool[Math.floor(Math.random() * gameState.pool.length)];
+        const el = document.createElement('div');
+        el.className = 'falling-char';
+        el.innerText = char;
+        const maxX = gameArea.clientWidth - 40; 
+        el.style.left = (Math.random() * maxX) + 'px';
+        el.style.top = '-40px';
+        gameArea.appendChild(el);
+        gameState.letters.push({ char: char, el: el, y: -40, active: true });
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (!gameState.active) return;
+        if (e.key.length !== 1) return;
+        let targetIndex = -1, maxY = -9999;
+        gameState.letters.forEach((obj, index) => {
+            if (obj.active && obj.char === e.key && obj.y > maxY) {
+                maxY = obj.y; targetIndex = index;
+            }
+        });
+        if (targetIndex !== -1) {
+            gameState.letters[targetIndex].el.remove(); 
+            gameState.letters.splice(targetIndex, 1);
+            gameState.score += 10;
+            document.getElementById('current-score').innerText = gameState.score;
+        }
+    });
+
+    function saveScore(level, score) {
+        if (score === 0) return;
+        let history = JSON.parse(localStorage.getItem('letterGame_history_v2') || '[]');
+        const now = new Date();
+        const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+        let speedLabel = document.getElementById('speed-select').options[document.getElementById('speed-select').selectedIndex].getAttribute('data-i18n');
+        let speedText = getTrans(speedLabel) || "Standard";
+        let typeInfo = "Lv." + level;
+        if(document.getElementById('chk-digits').checked) typeInfo += "+Num";
+        if(document.getElementById('chk-symbols').checked) typeInfo += "+Sym";
+        history.push({ ts: Date.now(), date: dateStr, levelNum: parseInt(level), levelStr: typeInfo, speed: speedText, score: score });
+        localStorage.setItem('letterGame_history_v2', JSON.stringify(history));
+        renderHistory();
+    }
+
+    function validateInput(el) {
+        if(el.value === "") return;
+        let val = parseInt(el.value);
+        if(val < 1) el.value = 1;
+        if(val > 52) el.value = 52;
+    }
+
+    function renderHistory() {
+        const history = JSON.parse(localStorage.getItem('letterGame_history_v2') || '[]');
+        const tbody = document.getElementById('score-history-body');
+        const sortKey = document.getElementById('hist-sort').value;
+        const filterLv = document.getElementById('hist-filter-lv').value;
+        tbody.innerHTML = '';
+        let displayData = history.filter(item => {
+            if(filterLv && item.levelNum !== parseInt(filterLv)) return false;
+            return true;
+        });
+        displayData.sort((a, b) => {
+            if (sortKey === 'score') return b.score - a.score;
+            if (sortKey === 'level') return b.levelNum - a.levelNum;
+            return b.ts - a.ts;
+        });
+        displayData.slice(0, 50).forEach(rec => {
+            let row = `<tr><td>${rec.date}</td><td><span style="font-weight:bold;">${rec.levelStr}</span><span class="tag spd">${rec.speed}</span></td><td style="color:#f1c40f; font-weight:bold; font-size:1.1rem;">${rec.score}</td></tr>`;
+            tbody.innerHTML += row;
+        });
+        if(displayData.length === 0) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#555;">...</td></tr>';
+    }
+
+    function clearHistory() {
+        if(confirm(getTrans('msg_confirm_clear'))) {
+            localStorage.removeItem('letterGame_history_v2');
+            renderHistory();
+        }
+    }
+    function closeModal() { document.getElementById('game-over-modal').style.display = 'none'; }
+</script>
+</body>
+</html>
