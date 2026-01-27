@@ -220,12 +220,20 @@ I live[v] in Hong Kong.</textarea>
     });
 
     function splitTextIntoSentences(text) {
-        const regex = /[^.?!;:。？！；：\n]+[.?!;:。？！；：\n]*|.+/g;
+        // 修改說明：
+        // 舊邏輯：只抓標點符號 -> [.?!;:。？！；：\n]*
+        // 新邏輯：抓標點符號 + 選擇性抓取後面的收引號 -> (?:[.?!;:。？！；：\n]+[”’」）\]]*)?
+        
+        // 包含常見的收尾符號：” (右雙引號), ’ (右單引號), 」 (中文右引號), ） (全形右括號), ] (半形右括號)
+        const regex = /[^.?!;:。？！；：\n]+(?:[.?!;:。？！；：\n]+[”’」）\]]*)?|.+/g;
+        
         return (text.match(regex) || []).map(s => s.trim()).filter(s => s.length > 0);
     }
 
     function generateDictationQueue(text, lang) {
         let queue = [];
+        
+        // 1. 英文處理邏輯 (保持不變)
         if (lang === 'en-GB') {
             const rawTokens = text.match(/[\w']+(\[[a-z]+\])?|[^\w\s]/gi) || [];
             const punctMap = { '.': 'full stop', ',': 'comma', '?': 'question mark', '!': 'exclamation mark', ':': 'colon', ';': 'semi-colon', '(': 'open bracket', ')': 'close bracket', '"': 'quote' };
@@ -244,19 +252,45 @@ I live[v] in Hong Kong.</textarea>
                     queue.push({ display: cleanWord, speak: speakWord, isPunct: false });
                 }
             }
-        } else {
-            const punctMap = { '，': '逗號', '。': '句號', '、': '頓號', '？': '問號', '！': '感嘆號', '：': '冒號', '；': '分號', '「': '開引號', '」': '收引號', '（': '括號', '）': '括號完', ',': '逗號', '.': '句號', '?': '問號', '!': '感嘆號' };
-            for (let char of text) {
+        } 
+        // 2. 中文處理邏輯 (這裡加入了兒化音判斷)
+        else {
+            //const punctMap = { '，': '逗號', '。': '句號', '、': '頓號', '？': '問號', '！': '感嘆號', '：': '冒號', '；': '分號', '「': '開引號', '」': '收引號', '（': '括號', '）': '括號完', ',': '逗號', '.': '句號', '?': '問號', '!': '感嘆號' };
+            const punctMap = { '，': '逗號', '。': '句號', '、': '頓號', '？': '問號', '！': '感嘆號', '：': '冒號', '；': '分號', '「': '開引號', '」': '關引號', '（': '開括號', '）': '關括號', ',': '逗號', '.': '句號', '?': '問號', '!': '感嘆號' };
+
+            // 改用 for 迴圈，以便控制索引 (i)
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                let nextChar = text[i+1]; // 偷看下一個字
+
+                // 跳過特殊的標記符號 (保持原邏輯)
                 if (['[', ']', 'a', 'd', 'j', 'v'].includes(char) && text.includes('[')) continue; 
                 if (char.trim() === '') continue;
-                if (punctMap[char]) queue.push({ display: char, speak: punctMap[char], isPunct: true });
-                else if (char === '玩' && lang === 'zh-HK') queue.push({ display: '玩', speak: '換', isPunct: false });
-                else queue.push({ display: char, speak: char, isPunct: false });
+
+                // 處理標點符號
+                if (punctMap[char]) {
+                    queue.push({ display: char, speak: punctMap[char], isPunct: true });
+                }
+                // --- ✨ 新增：兒化音處理邏輯 ✨ ---
+                // 如果目前不是標點，且下一個字是「兒」，且語言是普通話(zh-CN)
+                else if (nextChar === '兒' && lang === 'zh-CN' && !punctMap[nextChar]) {
+                    // 把 "這" 和 "兒" 合併成 "這兒"
+                    let combined = char + nextChar;
+                    queue.push({ display: combined, speak: combined, isPunct: false });
+                    i++; // 重要！因為已經把「兒」用掉了，所以跳過下一次迴圈
+                }
+                // ----------------------------------
+                else if (char === '玩' && lang === 'zh-HK') {
+                    queue.push({ display: '玩', speak: '換', isPunct: false });
+                }
+                else {
+                    queue.push({ display: char, speak: char, isPunct: false });
+                }
             }
         }
         return queue;
     }
-
+	
     function detectLivePronunciation(idx, tokens) {
         let pronunciation = "liv"; 
         const clean = (t) => t ? t.replace(/\[.*?\]/g, '').toLowerCase() : '';
