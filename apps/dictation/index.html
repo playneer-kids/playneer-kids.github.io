@@ -190,6 +190,8 @@ I live[v] in Hong Kong.</textarea>
     let sentences = []; let sentenceIndex = 0; let wordQueue = []; let wordIndex = 0;
     let isPlaying = false; let isPaused = false; let timerId = null; let voices = [];
     let isMasked = false;
+    
+    let currentUtterance = null; // ✨ 新增這一行 (用來防止手機回收語音物件)
 
     function init() { populateVoices(); if(speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = populateVoices; }
     function populateVoices() { voices = synth.getVoices(); }
@@ -317,25 +319,71 @@ I live[v] in Hong Kong.</textarea>
     function playNextWord() {
         if (!isPlaying) return;
         if (wordIndex >= wordQueue.length) { finishSentence(); return; }
+        
         const item = wordQueue[wordIndex];
         currentWordDisplay.textContent = item.display;
         
-        if (item.isPunct) { pronunciationDisplay.textContent = `讀作: ${item.speak}`; pronunciationDisplay.style.display = 'block'; } 
-        else if (item.display.toLowerCase() === 'live' && item.speak === 'lye-v') { pronunciationDisplay.textContent = `發音: 賴-v (形容詞)`; pronunciationDisplay.style.display = 'block'; } 
-        else { pronunciationDisplay.style.display = 'none'; }
+        // 顯示發音提示
+        if (item.isPunct) { 
+            pronunciationDisplay.textContent = `讀作: ${item.speak}`; 
+            pronunciationDisplay.style.display = 'block'; 
+        } 
+        else if (item.display.toLowerCase() === 'live' && item.speak === 'lye-v') { 
+            pronunciationDisplay.textContent = `發音: 賴-v (形容詞)`; 
+            pronunciationDisplay.style.display = 'block'; 
+        } 
+        else { 
+            pronunciationDisplay.style.display = 'none'; 
+        }
 
-        const u = new SpeechSynthesisUtterance(item.speak);
-        setupVoice(u);
-        u.onend = () => { if (!isPlaying) return; statusMsg.textContent = `停頓...`; timerId = setTimeout(() => { wordIndex++; playNextWord(); }, parseFloat(intervalRange.value) * 1000); };
-        u.onerror = () => { wordIndex++; playNextWord(); }; 
+        // --- ✨ 修改重點開始 ✨ ---
+        // 舊代碼: const u = new SpeechSynthesisUtterance(item.speak);
+        // 新代碼: 使用全域變數，防止被瀏覽器回收
+        currentUtterance = new SpeechSynthesisUtterance(item.speak);
+        
+        setupVoice(currentUtterance);
+
+        currentUtterance.onend = () => { 
+            if (!isPlaying) return; 
+            statusMsg.textContent = `停頓...`; 
+            // 這裡使用遞歸呼叫下一字
+            timerId = setTimeout(() => { 
+                wordIndex++; 
+                playNextWord(); 
+            }, parseFloat(intervalRange.value) * 1000); 
+        };
+
+        currentUtterance.onerror = (e) => { 
+            console.error("Speech Error:", e); // 加入 Log 方便除錯
+            // 即使出錯也要繼續讀下一個，防止卡死
+            if (isPlaying) {
+                wordIndex++; 
+                playNextWord(); 
+            }
+        }; 
+
         statusMsg.textContent = "🔊 朗讀中";
-        synth.speak(u);
+        
+        // 強制重置 (針對 iOS 的一個小 Hack)
+        synth.cancel(); 
+        
+        synth.speak(currentUtterance);
+        // --- ✨ 修改重點結束 ✨ ---
     }
 
     function playWholeSentence(speakText, displayText) {
-        currentWordDisplay.textContent = displayText; currentWordDisplay.style.fontSize = "24px"; pronunciationDisplay.style.display = 'none';
-        const u = new SpeechSynthesisUtterance(speakText); setupVoice(u);
-        u.onend = () => finishSentence(); synth.speak(u);
+        currentWordDisplay.textContent = displayText; 
+        currentWordDisplay.style.fontSize = "24px"; 
+        pronunciationDisplay.style.display = 'none';
+        
+        // 同樣使用全域變數
+        currentUtterance = new SpeechSynthesisUtterance(speakText); 
+        setupVoice(currentUtterance);
+        
+        currentUtterance.onend = () => finishSentence(); 
+        
+        synth.cancel(); // 播放前先清除舊的
+        synth.speak(currentUtterance);
     }
 
     function finishSentence() {
