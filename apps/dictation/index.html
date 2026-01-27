@@ -192,6 +192,23 @@ I live[v] in Hong Kong.</textarea>
     let isMasked = false;
     
     let currentUtterance = null; // ✨ 新增這一行 (用來防止手機回收語音物件)
+	// ✨ 新增這一段：iOS 語音引擎強心針 ✨
+    let resumeInterval = null;
+	
+	function startHeartbeat() {
+        if (resumeInterval) clearInterval(resumeInterval);
+        resumeInterval = setInterval(() => {
+            if (isPlaying && !isPaused) {
+                synth.resume(); // 每 200ms 戳一下引擎，強迫它保持清醒
+            }
+        }, 200);
+    }
+
+    function stopHeartbeat() {
+        if (resumeInterval) clearInterval(resumeInterval);
+        resumeInterval = null;
+    }
+    // ------------------------------------
 
     function init() { populateVoices(); if(speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = populateVoices; }
     function populateVoices() { voices = synth.getVoices(); }
@@ -316,6 +333,9 @@ I live[v] in Hong Kong.</textarea>
         else { let fullSpeak = wordQueue.map(w => w.speak).join(' '); playWholeSentence(fullSpeak, sentencePreview.textContent); }
     }
 
+    // 用來存放語音物件，防止被瀏覽器回收
+    let utteranceStorage = []; 
+
     function playNextWord() {
         if (!isPlaying) return;
         if (wordIndex >= wordQueue.length) { finishSentence(); return; }
@@ -336,39 +356,37 @@ I live[v] in Hong Kong.</textarea>
             pronunciationDisplay.style.display = 'none'; 
         }
 
-        // --- ✨ 修改重點開始 ✨ ---
-        // 舊代碼: const u = new SpeechSynthesisUtterance(item.speak);
-        // 新代碼: 使用全域變數，防止被瀏覽器回收
-        currentUtterance = new SpeechSynthesisUtterance(item.speak);
+        // 建立語音物件
+        let u = new SpeechSynthesisUtterance(item.speak);
+        setupVoice(u);
         
-        setupVoice(currentUtterance);
+        // ✨ 關鍵修改：把物件丟進全域陣列保存，直到讀完 ✨
+        utteranceStorage.push(u);
 
-        currentUtterance.onend = () => { 
+        u.onend = () => { 
             if (!isPlaying) return; 
             statusMsg.textContent = `停頓...`; 
-            // 這裡使用遞歸呼叫下一字
+            
+            // 讀完後，從陣列中移除舊物件以釋放記憶體
+            utteranceStorage = utteranceStorage.filter(ut => ut !== u);
+
             timerId = setTimeout(() => { 
                 wordIndex++; 
                 playNextWord(); 
             }, parseFloat(intervalRange.value) * 1000); 
         };
 
-        currentUtterance.onerror = (e) => { 
-            console.error("Speech Error:", e); // 加入 Log 方便除錯
-            // 即使出錯也要繼續讀下一個，防止卡死
-            if (isPlaying) {
-                wordIndex++; 
-                playNextWord(); 
-            }
+        u.onerror = (e) => { 
+            console.error("Speech Error:", e);
+            utteranceStorage = utteranceStorage.filter(ut => ut !== u);
+            if (isPlaying) { wordIndex++; playNextWord(); }
         }; 
 
         statusMsg.textContent = "🔊 朗讀中";
         
-        // 強制重置 (針對 iOS 的一個小 Hack)
+        // 在 iOS 上，speak 之前先 cancel 經常能救命
         synth.cancel(); 
-        
-        synth.speak(currentUtterance);
-        // --- ✨ 修改重點結束 ✨ ---
+        synth.speak(u);
     }
 
     function playWholeSentence(speakText, displayText) {
@@ -386,9 +404,21 @@ I live[v] in Hong Kong.</textarea>
         synth.speak(currentUtterance);
     }
 
+    // 修改 finishSentence (整句讀完時)
     function finishSentence() {
-        if (autoPlayCheck.checked && isPlaying) { statusMsg.textContent = "準備下一句..."; currentWordDisplay.style.fontSize = "60px"; timerId = setTimeout(() => { sentenceIndex++; startSentence(); }, 1000); } 
-        else { isPlaying = false; wordIndex = 0; statusMsg.textContent = "本句結束"; currentWordDisplay.style.fontSize = "60px"; updateUI(); }
+        if (autoPlayCheck.checked && isPlaying) { 
+            // 如果還有下一句，保持強心針開啟
+            statusMsg.textContent = "準備下一句..."; 
+            currentWordDisplay.style.fontSize = "60px"; 
+            timerId = setTimeout(() => { sentenceIndex++; startSentence(); }, 1000); 
+        } else { 
+            isPlaying = false; 
+            stopHeartbeat(); // ✨ 全部讀完，關閉強心針
+            wordIndex = 0; 
+            statusMsg.textContent = "本句結束"; 
+            currentWordDisplay.style.fontSize = "60px"; 
+            updateUI(); 
+        }
     }
 
     function setupVoice(u) {
@@ -398,23 +428,52 @@ I live[v] in Hong Kong.</textarea>
         if (v) u.voice = v;
     }
 
+    // 修改 btnPlay 的監聽器
     btnPlay.addEventListener('click', () => {
-        if (sentences.length === 0) { const txt = textInput.value.trim(); if (!txt) { alert("請輸入文字"); return; } sentences = splitTextIntoSentences(txt); }
+        if (sentences.length === 0) { 
+            const txt = textInput.value.trim(); 
+            if (!txt) { alert("請輸入文字"); return; } 
+            sentences = splitTextIntoSentences(txt); 
+        }
         isPlaying = true; isPaused = false;
-        if (wordIndex === 0 && sentenceIndex < sentences.length) startSentence(); else if (wordQueue.length > 0) playNextWord(); else startSentence();
+        
+        startHeartbeat(); // ✨ 啟動強心針！
+        
+        if (wordIndex === 0 && sentenceIndex < sentences.length) startSentence(); 
+        else if (wordQueue.length > 0) playNextWord(); 
+        else startSentence();
+        
         updateUI();
     });
 
-    btnPause.addEventListener('click', () => { isPlaying = false; isPaused = true; synth.cancel(); clearTimeout(timerId); statusMsg.textContent = "已暫停"; updateUI(); });
-    btnStop.addEventListener('click', resetPlayer);
+    // 修改 btnPause
+    btnPause.addEventListener('click', () => { 
+        isPlaying = false; isPaused = true; 
+        synth.cancel(); 
+        clearTimeout(timerId); 
+        stopHeartbeat(); // ✨ 暫停時關閉
+        statusMsg.textContent = "已暫停"; 
+        updateUI(); 
+    });
+	
+	
+	btnStop.addEventListener('click', resetPlayer);
     btnPrev.addEventListener('click', () => { if(sentenceIndex>0){ sentenceIndex--; resetForNavigation();} });
     btnNext.addEventListener('click', () => { if(sentenceIndex<sentences.length-1){ sentenceIndex++; resetForNavigation();} });
     
     function resetForNavigation() { isPlaying=false; isPaused=false; synth.cancel(); clearTimeout(timerId); wordIndex=0; wordQueue=[]; 
         sentencePreview.textContent = sentences[sentenceIndex].replace(/\[.*?\]/g, ''); currentWordDisplay.textContent = "..."; progressIndicator.textContent = `第 ${sentenceIndex + 1} / ${sentences.length} 句`; updateUI(); }
     
-    function resetPlayer() { isPlaying=false; isPaused=false; synth.cancel(); clearTimeout(timerId); sentenceIndex=0; wordIndex=0; wordQueue=[]; sentences=[]; currentWordDisplay.textContent="..."; sentencePreview.textContent="準備就緒"; progressIndicator.textContent="第 0 / 0 句"; statusMsg.textContent="已重置"; updateUI(); }
-
+    // 修改 resetPlayer
+    function resetPlayer() { 
+        isPlaying=false; isPaused=false; 
+        synth.cancel(); 
+        clearTimeout(timerId); 
+        stopHeartbeat(); // ✨ 重置時關閉
+        // ... (後面保持原樣)
+        sentenceIndex=0; wordIndex=0; wordQueue=[]; sentences=[]; currentWordDisplay.textContent="..."; sentencePreview.textContent="準備就緒"; progressIndicator.textContent="第 0 / 0 句"; statusMsg.textContent="已重置"; updateUI(); 
+    }
+	
     function updateUI() {
         if (isPlaying) { btnPlay.style.display = 'none'; btnPause.style.display = 'inline-block'; btnStop.disabled = false; textInput.disabled = true; dictationModeCheck.disabled = true; } 
         else { btnPlay.textContent = (isPaused) ? "▶ 繼續" : ((sentences.length > 0 && wordIndex === 0) ? "▶ 朗讀此句" : "▶ 開始"); btnPlay.style.display = 'inline-block'; btnPause.style.display = 'none'; btnStop.disabled = !(sentences.length > 0 || textInput.value.trim().length > 0); if (sentences.length > 0) { btnPrev.disabled = (sentenceIndex===0); btnNext.disabled = (sentenceIndex>=sentences.length-1); } else { btnPrev.disabled=true; btnNext.disabled=true; } textInput.disabled = false; dictationModeCheck.disabled = false; }
