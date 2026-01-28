@@ -466,20 +466,19 @@ I live[v] in Hong Kong.</textarea>
 
     function setupVoice(u) {
         u.rate = parseFloat(rateRange.value);
+        
         let availableVoices = synth.getVoices();
         let targetLang = langSelect.value; 
         let selectedVoice = null;
 
         // --- 普通話 (Mandarin) ---
         if (targetLang === 'zh-CN') {
-            // 🚨 嚴格模式：只准選「婷婷」或「彬彬」 (純大陸口音) 🚨
-            // 絕對不選「美佳」，因為她在您的手機上會變成廣東話
+            // 尋找婷婷 (或彬彬)
             selectedVoice = availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
                             availableVoices.find(v => v.name === 'Bin-Bin' || v.name === '彬彬');
             
-            // 如果真的沒有婷婷，我們寧可讓它失敗，也不要亂抓
+            // 如果真的沒有，才用寬鬆搜尋
             if (!selectedVoice) {
-                // 最後一搏：只找 zh-CN 標籤的
                 selectedVoice = availableVoices.find(v => v.lang === 'zh-CN');
             }
         } 
@@ -497,24 +496,31 @@ I live[v] in Hong Kong.</textarea>
                             availableVoices.find(v => v.lang === 'en-GB');
         }
 
-        // --- 應用設定 ---
+        // --- 🚨 核心欺騙邏輯 🚨 ---
         if (selectedVoice) {
             u.voice = selectedVoice;
-            // 強制設定語言，防止跑掉
-            u.lang = selectedVoice.lang; 
+
+            if (targetLang === 'zh-CN') {
+                // 這裡就是關鍵！
+                // 我們故意把語言設成 'en-US' (美國英語)。
+                // 這會騙過 iOS，讓它不要啟動「香港地區中文強制轉廣東話」的機制。
+                // 婷婷雖然拿到 'en-US' 的標籤，但她還是會用普通話唸中文字。
+                u.lang = 'en-US'; 
+                console.log("已啟動 iOS 越獄模式：偽裝成英文以強制普通話");
+            } else {
+                u.lang = selectedVoice.lang;
+            }
             
-            // 🚨 特別修正：如果是普通話，強制鎖定 zh-CN
-            if (targetLang === 'zh-CN') u.lang = 'zh-CN';
         } else {
             u.lang = targetLang;
         }
 
-        // Debug
+        // Debug 訊息
         let debugName = selectedVoice ? selectedVoice.name : "系統預設";
         if (statusMsg) {
-             statusMsg.textContent = `🔊 ${debugName} (${u.lang}) 朗讀中`;
+             // 顯示出來讓你知道現在是用「英文標籤」在跑
+             statusMsg.textContent = `🔊 ${debugName} [${u.lang}]`;
         }
-        console.log(`[Debug] 目標: ${targetLang}, 抓到: ${debugName}, 強制語言: ${u.lang}`);
     }
 
     // 修改 btnPlay 的監聽器
