@@ -465,57 +465,55 @@ I live[v] in Hong Kong.</textarea>
     }
 
     function setupVoice(u) {
+        // 1. 基本設定
         u.lang = langSelect.value; 
         u.rate = parseFloat(rateRange.value);
 
-        // 確保重新取得列表
+        // 2. 取得語音列表
         let availableVoices = synth.getVoices();
         let targetLang = u.lang;
         let selectedVoice = null;
 
-        // --- 中文處理邏輯 ---
-        if (targetLang.startsWith('zh')) {
-            if (targetLang === 'zh-CN') {
-                // 🎯 普通話 (Mandarin)
-                // 修正重點：同時搜尋 "Ting-Ting" (英文名) 和 "婷婷" (中文名)
-                // 也順便加上 Bin-Bin (彬彬)，以防萬一
-                selectedVoice = availableVoices.find(v => 
-                    v.name.includes('Ting-Ting') || v.name.includes('婷婷') || 
-                    v.name.includes('Bin-Bin')   || v.name.includes('彬彬')
-                );
-
-                // 如果找不到婷婷，再找任何包含 "China", "Mandarin", "Putonghua" 的
-                if (!selectedVoice) {
-                    selectedVoice = availableVoices.find(v => 
-                        (v.lang === 'zh-CN' || v.lang === 'zh-Hans-CN') ||
-                        ((v.name.includes('Mandarin') || v.name.includes('Putonghua') || v.name.includes('普通話')) &&
-                         !v.name.includes('Cantonese') && !v.name.includes('HK'))
-                    );
-                }
-            } 
-            else if (targetLang === 'zh-HK') {
-                // 🎯 廣東話 (Cantonese)
-                // 同時找 "Sin-ji" 和 "仙芝" (如果有中文名的話)
-                selectedVoice = availableVoices.find(v => 
-                    v.name.includes('Sin-ji') || v.name.includes('Cantonese') || v.name.includes('HK')
-                );
-            }
+        // 3. 精確配對邏輯 (根據您的清單量身打造)
+        
+        // --- 普通話 (Mandarin) ---
+        if (targetLang === 'zh-CN') {
+            // 第一順位：婷婷 (您的手機已有)
+            // 第二順位：美佳 (台灣普通話，您的手機也有)
+            // 第三順位：任何普通話標籤
+            selectedVoice = availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
+                            availableVoices.find(v => v.name === '美佳' || v.name === 'Meijia') ||
+                            availableVoices.find(v => v.lang === 'zh-CN') ||
+                            availableVoices.find(v => v.name.includes('Mandarin') || v.name.includes('Putonghua'));
         } 
-        // --- 英文處理 ---
+        
+        // --- 廣東話 (Cantonese) ---
+        else if (targetLang === 'zh-HK') {
+            // iOS 廣東話通常叫 "Sin-ji" 或 "仙芝"
+            selectedVoice = availableVoices.find(v => v.name === 'Sin-ji' || v.name === '仙芝') ||
+                            availableVoices.find(v => v.lang === 'zh-HK') ||
+                            availableVoices.find(v => v.name.includes('Cantonese'));
+        } 
+        
+        // --- 英語 (English) ---
         else if (targetLang === 'en-GB') {
-            selectedVoice = availableVoices.find(v => v.lang === 'en-GB' && v.name.includes('Google')) || 
+            // 您的清單中有 Daniel，他是標準英式發音
+            selectedVoice = availableVoices.find(v => v.name === 'Daniel') ||
                             availableVoices.find(v => v.lang === 'en-GB');
         }
 
-        // --- 最終應用 ---
+        // 4. 應用選擇
         if (selectedVoice) {
             u.voice = selectedVoice;
-        } 
-        
-        // 這是給你看的：檢查到底抓到了誰
-        // 如果抓到了，會顯示 "Ting-Ting" 或 "婷婷"
-        let debugName = selectedVoice ? selectedVoice.name : "系統預設(未抓到)";
-        console.log(`[Debug] 目標: ${targetLang}, 抓到: ${debugName}`);
+        }
+
+        // 5. 畫面除錯訊息 (這行非常重要，告訴我們到底選了誰)
+        // 如果成功，應該會顯示 "🔊 婷婷 朗讀中"
+        let debugName = selectedVoice ? selectedVoice.name : "系統預設";
+        if (statusMsg) {
+             statusMsg.textContent = `🔊 ${debugName} 朗讀中`;
+        }
+        console.log(`[Debug] 目標語言: ${targetLang}, 抓到: ${debugName}`);
     }
 
     // 修改 btnPlay 的監聽器
