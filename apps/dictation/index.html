@@ -335,57 +335,88 @@ I live[v] in Hong Kong.</textarea>
 
     // 用來存放語音物件，防止被瀏覽器回收
     let utteranceStorage = []; 
+	let watchdogTimer = null; //  新增：看門狗計時器
+	
+	//  新增：清除看門狗的函數
+    function clearWatchdog() {
+        if (watchdogTimer) {
+            clearTimeout(watchdogTimer);
+            watchdogTimer = null;
+        }
+    }
 
     function playNextWord() {
+        // 1. 基本檢查
         if (!isPlaying) return;
         if (wordIndex >= wordQueue.length) { finishSentence(); return; }
         
+        // 2. 顯示文字與拼音
         const item = wordQueue[wordIndex];
         currentWordDisplay.textContent = item.display;
         
-        // 顯示發音提示
         if (item.isPunct) { 
             pronunciationDisplay.textContent = `讀作: ${item.speak}`; 
             pronunciationDisplay.style.display = 'block'; 
-        } 
-        else if (item.display.toLowerCase() === 'live' && item.speak === 'lye-v') { 
+        } else if (item.display.toLowerCase() === 'live' && item.speak === 'lye-v') { 
             pronunciationDisplay.textContent = `發音: 賴-v (形容詞)`; 
             pronunciationDisplay.style.display = 'block'; 
-        } 
-        else { 
+        } else { 
             pronunciationDisplay.style.display = 'none'; 
         }
 
-        // 建立語音物件
+        // 3. 建立語音物件
         let u = new SpeechSynthesisUtterance(item.speak);
         setupVoice(u);
         
-        // ✨ 關鍵修改：把物件丟進全域陣列保存，直到讀完 ✨
+        // 4. 放入垃圾桶防止回收
         utteranceStorage.push(u);
 
-        u.onend = () => { 
-            if (!isPlaying) return; 
-            statusMsg.textContent = `停頓...`; 
+        // 5. 定義「講完後」要做的事 (封裝成函數以便重複使用)
+        const handleEnd = () => {
+            // 清除看門狗，避免重複觸發
+            clearWatchdog();
             
-            // 讀完後，從陣列中移除舊物件以釋放記憶體
+            // 從垃圾桶移除
             utteranceStorage = utteranceStorage.filter(ut => ut !== u);
 
+            if (!isPlaying) return; 
+
+            statusMsg.textContent = `停頓...`; 
+            
+            // 倒數進入下一個字
             timerId = setTimeout(() => { 
                 wordIndex++; 
                 playNextWord(); 
             }, parseFloat(intervalRange.value) * 1000); 
         };
 
+        // 6. 正常的結束事件
+        u.onend = handleEnd;
+
+        // 7. 錯誤處理 (也當作結束)
         u.onerror = (e) => { 
             console.error("Speech Error:", e);
-            utteranceStorage = utteranceStorage.filter(ut => ut !== u);
-            if (isPlaying) { wordIndex++; playNextWord(); }
+            handleEnd(); 
         }; 
 
+        // ✨ 8. 看門狗機制 (終極保險) ✨
+        // 估算唸這個字大概要多久？ (每個字給它 0.5秒 + 額外緩衝 2秒)
+        // 如果超過這個時間還沒反應，強制執行 handleEnd
+        clearWatchdog();
+        let estimatedTime = (item.speak.length * 500) + 2000; 
+        if (estimatedTime < 3000) estimatedTime = 3000; // 最少給 3 秒
+
+        watchdogTimer = setTimeout(() => {
+            console.warn("⚠️ iOS 卡住了！看門狗強制跳下一字");
+            // 強制取消當前發音，並手動觸發結束邏輯
+            synth.cancel();
+            handleEnd();
+        }, estimatedTime);
+
+        // 9. 開始播放
         statusMsg.textContent = "🔊 朗讀中";
         
-        // 在 iOS 上，speak 之前先 cancel 經常能救命
-        synth.cancel(); 
+        // 注意：這裡移除了 synth.cancel()，讓它自然排隊，減少 iOS 錯亂機率
         synth.speak(u);
     }
 
@@ -451,7 +482,8 @@ I live[v] in Hong Kong.</textarea>
         isPlaying = false; isPaused = true; 
         synth.cancel(); 
         clearTimeout(timerId); 
-        stopHeartbeat(); // ✨ 暫停時關閉
+        stopHeartbeat(); 
+        clearWatchdog(); //  加入這行
         statusMsg.textContent = "已暫停"; 
         updateUI(); 
     });
@@ -469,8 +501,10 @@ I live[v] in Hong Kong.</textarea>
         isPlaying=false; isPaused=false; 
         synth.cancel(); 
         clearTimeout(timerId); 
-        stopHeartbeat(); // ✨ 重置時關閉
-        // ... (後面保持原樣)
+        stopHeartbeat();
+        clearWatchdog(); // ✨ 加入這行
+        
+        // ... (後面保持不變)
         sentenceIndex=0; wordIndex=0; wordQueue=[]; sentences=[]; currentWordDisplay.textContent="..."; sentencePreview.textContent="準備就緒"; progressIndicator.textContent="第 0 / 0 句"; statusMsg.textContent="已重置"; updateUI(); 
     }
 	
