@@ -465,9 +465,8 @@ I live[v] in Hong Kong.</textarea>
     }
 
     function setupVoice(u) {
-        // 1. 基本設定
         u.rate = parseFloat(rateRange.value);
-        // 注意：先不要設定 u.lang，等選好聲音後再設定，避免 iOS 混亂
+        // 注意：這裡先不設定 lang，留給後面決定
 
         let availableVoices = synth.getVoices();
         let targetLang = langSelect.value; 
@@ -475,13 +474,12 @@ I live[v] in Hong Kong.</textarea>
 
         // --- 普通話 (Mandarin) ---
         if (targetLang === 'zh-CN') {
-            // 戰術調整：既然婷婷不乖，我們先試試看 "美佳" (台灣普通話)
-            // 如果您比較喜歡婷婷，可以把順序調換回來，但在除錯階段建議先測美佳
+            // 優先找 美佳 (台灣) 或 婷婷 (大陸)
             selectedVoice = availableVoices.find(v => v.name === '美佳' || v.name === 'Meijia') ||
                             availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
                             availableVoices.find(v => v.name === 'Bin-Bin' || v.name === '彬彬');
             
-            // 如果真的都沒有，再用寬鬆搜尋
+            // 找不到就寬鬆搜尋
             if (!selectedVoice) {
                 selectedVoice = availableVoices.find(v => v.lang === 'zh-CN') ||
                                 availableVoices.find(v => v.name.includes('Mandarin') || v.name.includes('Putonghua'));
@@ -501,21 +499,29 @@ I live[v] in Hong Kong.</textarea>
                             availableVoices.find(v => v.lang === 'en-GB');
         }
 
-        // --- 關鍵修正：應用選擇與語言同步 ---
+        // --- 關鍵修正：強制語言標籤 (Deception Mode) ---
         if (selectedVoice) {
             u.voice = selectedVoice;
-            // ✨ 這裡最重要！強制把語言設成跟聲音一模一樣 ✨
-            // 這能防止 iOS 自作聰明切回廣東話
-            u.lang = selectedVoice.lang; 
+            
+            // 🚨 欺騙戰術開始 🚨
+            // 如果我們選的是普通話模式 (zh-CN)，不管抓到的聲音是誰 (就算是美佳 zh-TW)
+            // 我們都強制告訴 iOS 這是 'zh-CN'。
+            // 這樣可以防止 iOS 因為看到 zh-TW (繁體) 而自動跳回廣東話。
+            if (targetLang === 'zh-CN') {
+                u.lang = 'zh-CN'; 
+            } else {
+                u.lang = selectedVoice.lang;
+            }
+            
         } else {
-            // 如果沒抓到聲音，才用下拉選單的值當作備案
+            // 沒抓到聲音時的後備
             u.lang = targetLang;
         }
 
-        // debug
+        // Debug 訊息
         let debugName = selectedVoice ? selectedVoice.name : "系統預設";
         if (statusMsg) {
-             statusMsg.textContent = `🔊 ${debugName} 朗讀中`;
+             statusMsg.textContent = `🔊 ${debugName} (${u.lang}) 朗讀中`;
         }
         console.log(`[Debug] 目標: ${targetLang}, 抓到: ${debugName}, 強制語言: ${u.lang}`);
     }
