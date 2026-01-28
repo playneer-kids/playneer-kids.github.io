@@ -460,10 +460,70 @@ I live[v] in Hong Kong.</textarea>
     }
 
     function setupVoice(u) {
-        u.lang = langSelect.value; u.rate = parseFloat(rateRange.value);
-        let v = voices.find(v => v.lang === u.lang) || voices.find(v => v.lang.startsWith(u.lang.split('-')[0]));
-        if (u.lang === 'en-GB') v = voices.find(v => v.lang === 'en-GB' && v.name.includes('Google')) || voices.find(v => v.lang === 'en-GB');
-        if (v) u.voice = v;
+        // 設定語言與語速
+        u.lang = langSelect.value; 
+        u.rate = parseFloat(rateRange.value);
+
+        // 重新取得最新的語音列表 (確保 iOS 有載入)
+        let availableVoices = synth.getVoices();
+        let targetLang = u.lang;
+        let selectedVoice = null;
+
+        // --- 針對中文 (zh) 的特殊處理邏輯 ---
+        if (targetLang.startsWith('zh')) {
+            if (targetLang === 'zh-CN') {
+                // 🎯 目標：普通話 (Mandarin)
+                // 策略 1: 精準匹配 zh-CN 或 zh-Hans
+                selectedVoice = availableVoices.find(v => v.lang === 'zh-CN' || v.lang === 'zh-Hans-CN');
+                
+                // 策略 2: 尋找名稱裡有 "Mandarin", "Putonghua" 或 "China" 的聲音
+                if (!selectedVoice) {
+                    selectedVoice = availableVoices.find(v => 
+                        (v.name.includes('Mandarin') || v.name.includes('Putonghua') || v.name.includes('China')) &&
+                        !v.name.includes('Cantonese') && !v.name.includes('HK') && !v.name.includes('TW')
+                    );
+                }
+
+                // 策略 3: (最後手段) 找 zh 開頭，但嚴格排除 HK/TW/Cantonese
+                if (!selectedVoice) {
+                    selectedVoice = availableVoices.find(v => 
+                        v.lang.startsWith('zh') && 
+                        !v.lang.includes('HK') && !v.lang.includes('TW') && 
+                        !v.name.includes('Cantonese') && !v.name.includes('Hong Kong')
+                    );
+                }
+            } 
+            else if (targetLang === 'zh-HK') {
+                // 🎯 目標：廣東話 (Cantonese)
+                // 策略 1: 精準匹配 zh-HK
+                selectedVoice = availableVoices.find(v => v.lang === 'zh-HK');
+                
+                // 策略 2: 尋找名稱裡有 "Cantonese", "Hong Kong", "HK" 的聲音
+                if (!selectedVoice) {
+                    selectedVoice = availableVoices.find(v => 
+                        v.name.includes('Cantonese') || v.name.includes('Hong Kong') || v.name.includes('HK') || v.name.includes('Sin-ji')
+                    );
+                }
+            }
+        } 
+        // --- 針對英文 (en) 的處理 ---
+        else if (targetLang === 'en-GB') {
+            // 優先找 Google 的英國腔，沒有的話找任何 en-GB
+            selectedVoice = availableVoices.find(v => v.lang === 'en-GB' && v.name.includes('Google')) || 
+                            availableVoices.find(v => v.lang === 'en-GB');
+        }
+
+        // --- 最終檢查 ---
+        // 如果上面都沒選到，才用最寬鬆的 fallback，但通常中文不會走到這一步
+        if (!selectedVoice) {
+            selectedVoice = availableVoices.find(v => v.lang === targetLang) || 
+                            availableVoices.find(v => v.lang.startsWith(targetLang.split('-')[0]));
+        }
+
+        if (selectedVoice) {
+            u.voice = selectedVoice;
+            // console.log("Selected Voice:", selectedVoice.name, selectedVoice.lang); // 除錯用
+        }
     }
 
     // 修改 btnPlay 的監聽器
