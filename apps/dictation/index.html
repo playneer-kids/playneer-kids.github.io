@@ -466,30 +466,30 @@ I live[v] in Hong Kong.</textarea>
 
     function setupVoice(u) {
         // 1. 基本設定
-        u.lang = langSelect.value; 
         u.rate = parseFloat(rateRange.value);
+        // 注意：先不要設定 u.lang，等選好聲音後再設定，避免 iOS 混亂
 
-        // 2. 取得語音列表
         let availableVoices = synth.getVoices();
-        let targetLang = u.lang;
+        let targetLang = langSelect.value; 
         let selectedVoice = null;
 
-        // 3. 精確配對邏輯 (根據您的清單量身打造)
-        
         // --- 普通話 (Mandarin) ---
         if (targetLang === 'zh-CN') {
-            // 第一順位：婷婷 (您的手機已有)
-            // 第二順位：美佳 (台灣普通話，您的手機也有)
-            // 第三順位：任何普通話標籤
-            selectedVoice = availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
-                            availableVoices.find(v => v.name === '美佳' || v.name === 'Meijia') ||
-                            availableVoices.find(v => v.lang === 'zh-CN') ||
-                            availableVoices.find(v => v.name.includes('Mandarin') || v.name.includes('Putonghua'));
+            // 戰術調整：既然婷婷不乖，我們先試試看 "美佳" (台灣普通話)
+            // 如果您比較喜歡婷婷，可以把順序調換回來，但在除錯階段建議先測美佳
+            selectedVoice = availableVoices.find(v => v.name === '美佳' || v.name === 'Meijia') ||
+                            availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
+                            availableVoices.find(v => v.name === 'Bin-Bin' || v.name === '彬彬');
+            
+            // 如果真的都沒有，再用寬鬆搜尋
+            if (!selectedVoice) {
+                selectedVoice = availableVoices.find(v => v.lang === 'zh-CN') ||
+                                availableVoices.find(v => v.name.includes('Mandarin') || v.name.includes('Putonghua'));
+            }
         } 
         
         // --- 廣東話 (Cantonese) ---
         else if (targetLang === 'zh-HK') {
-            // iOS 廣東話通常叫 "Sin-ji" 或 "仙芝"
             selectedVoice = availableVoices.find(v => v.name === 'Sin-ji' || v.name === '仙芝') ||
                             availableVoices.find(v => v.lang === 'zh-HK') ||
                             availableVoices.find(v => v.name.includes('Cantonese'));
@@ -497,23 +497,27 @@ I live[v] in Hong Kong.</textarea>
         
         // --- 英語 (English) ---
         else if (targetLang === 'en-GB') {
-            // 您的清單中有 Daniel，他是標準英式發音
             selectedVoice = availableVoices.find(v => v.name === 'Daniel') ||
                             availableVoices.find(v => v.lang === 'en-GB');
         }
 
-        // 4. 應用選擇
+        // --- 關鍵修正：應用選擇與語言同步 ---
         if (selectedVoice) {
             u.voice = selectedVoice;
+            // ✨ 這裡最重要！強制把語言設成跟聲音一模一樣 ✨
+            // 這能防止 iOS 自作聰明切回廣東話
+            u.lang = selectedVoice.lang; 
+        } else {
+            // 如果沒抓到聲音，才用下拉選單的值當作備案
+            u.lang = targetLang;
         }
 
-        // 5. 畫面除錯訊息 (這行非常重要，告訴我們到底選了誰)
-        // 如果成功，應該會顯示 "🔊 婷婷 朗讀中"
+        // debug
         let debugName = selectedVoice ? selectedVoice.name : "系統預設";
         if (statusMsg) {
              statusMsg.textContent = `🔊 ${debugName} 朗讀中`;
         }
-        console.log(`[Debug] 目標語言: ${targetLang}, 抓到: ${debugName}`);
+        console.log(`[Debug] 目標: ${targetLang}, 抓到: ${debugName}, 強制語言: ${u.lang}`);
     }
 
     // 修改 btnPlay 的監聽器
