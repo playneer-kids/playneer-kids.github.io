@@ -466,23 +466,21 @@ I live[v] in Hong Kong.</textarea>
 
     function setupVoice(u) {
         u.rate = parseFloat(rateRange.value);
-        // 注意：這裡先不設定 lang，留給後面決定
-
         let availableVoices = synth.getVoices();
         let targetLang = langSelect.value; 
         let selectedVoice = null;
 
         // --- 普通話 (Mandarin) ---
         if (targetLang === 'zh-CN') {
-            // 優先找 美佳 (台灣) 或 婷婷 (大陸)
-            selectedVoice = availableVoices.find(v => v.name === '美佳' || v.name === 'Meijia') ||
-                            availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
+            // 🚨 嚴格模式：只准選「婷婷」或「彬彬」 (純大陸口音) 🚨
+            // 絕對不選「美佳」，因為她在您的手機上會變成廣東話
+            selectedVoice = availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
                             availableVoices.find(v => v.name === 'Bin-Bin' || v.name === '彬彬');
             
-            // 找不到就寬鬆搜尋
+            // 如果真的沒有婷婷，我們寧可讓它失敗，也不要亂抓
             if (!selectedVoice) {
-                selectedVoice = availableVoices.find(v => v.lang === 'zh-CN') ||
-                                availableVoices.find(v => v.name.includes('Mandarin') || v.name.includes('Putonghua'));
+                // 最後一搏：只找 zh-CN 標籤的
+                selectedVoice = availableVoices.find(v => v.lang === 'zh-CN');
             }
         } 
         
@@ -499,26 +497,19 @@ I live[v] in Hong Kong.</textarea>
                             availableVoices.find(v => v.lang === 'en-GB');
         }
 
-        // --- 關鍵修正：強制語言標籤 (Deception Mode) ---
+        // --- 應用設定 ---
         if (selectedVoice) {
             u.voice = selectedVoice;
+            // 強制設定語言，防止跑掉
+            u.lang = selectedVoice.lang; 
             
-            // 🚨 欺騙戰術開始 🚨
-            // 如果我們選的是普通話模式 (zh-CN)，不管抓到的聲音是誰 (就算是美佳 zh-TW)
-            // 我們都強制告訴 iOS 這是 'zh-CN'。
-            // 這樣可以防止 iOS 因為看到 zh-TW (繁體) 而自動跳回廣東話。
-            if (targetLang === 'zh-CN') {
-                u.lang = 'zh-CN'; 
-            } else {
-                u.lang = selectedVoice.lang;
-            }
-            
+            // 🚨 特別修正：如果是普通話，強制鎖定 zh-CN
+            if (targetLang === 'zh-CN') u.lang = 'zh-CN';
         } else {
-            // 沒抓到聲音時的後備
             u.lang = targetLang;
         }
 
-        // Debug 訊息
+        // Debug
         let debugName = selectedVoice ? selectedVoice.name : "系統預設";
         if (statusMsg) {
              statusMsg.textContent = `🔊 ${debugName} (${u.lang}) 朗讀中`;
