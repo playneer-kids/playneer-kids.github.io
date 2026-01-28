@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>默書神器 | Playneer Kids</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4018994426619685" crossorigin="anonymous"></script>
+    <title>默書輔助器 | Playneer Kids</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; background-color: #f3f4f6; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
@@ -87,11 +85,11 @@
 </div>
 
 <div class="container">
-    <h2>📝 智能語境默書神器</h2>
+    <h2>📝 默書輔助器</h2>
 
-    <div class="ad-container">
-        <span>Google AdSense 廣告顯示位置</span>
-    </div>
+    <!--<div class="ad-container">
+    
+    </div>-->
 
     <div class="section-box">
         <label>默書內容輸入：</label>
@@ -350,7 +348,7 @@ I live[v] in Hong Kong.</textarea>
         if (!isPlaying) return;
         if (wordIndex >= wordQueue.length) { finishSentence(); return; }
         
-        // 2. 顯示文字與拼音
+        // 2. 顯示文字
         const item = wordQueue[wordIndex];
         currentWordDisplay.textContent = item.display;
         
@@ -368,11 +366,17 @@ I live[v] in Hong Kong.</textarea>
         let u = new SpeechSynthesisUtterance(item.speak);
         setupVoice(u);
         
-        // 4. 放入垃圾桶防止回收
+        // 放入垃圾桶防止回收
         utteranceStorage.push(u);
 
-        // 5. 定義「講完後」要做的事
+        // ✨ 保護機制 1：單次執行鎖 ✨
+        // 確保這個字的結束邏輯只會跑一次，不會因為 watchdog 和 onend 同時觸發而跳兩次
+        let hasFinished = false;
+
         const handleEnd = () => {
+            if (hasFinished) return; // 如果已經處理過，就直接退出
+            hasFinished = true;
+
             clearWatchdog();
             
             // 從垃圾桶移除
@@ -382,45 +386,44 @@ I live[v] in Hong Kong.</textarea>
 
             statusMsg.textContent = `...`; 
             
-            // ✨ 修正重點 1：計算緩衝時間 ✨
-            // 即使設定為 0秒，我們強制給 50ms (0.05秒) 的緩衝，避免 iOS 處理不及
+            // ✨ 保護機制 2：強制最低安全間隔 (關鍵！) ✨
+            // iOS 語音引擎切換需要時間，低於 200ms (0.2秒) 會有極高機率掉字
+            // 所以我們強制設定：最少 200ms，不管使用者拉得多快
             let userInterval = parseFloat(intervalRange.value) * 1000;
-            let safeDelay = (userInterval < 50) ? 50 : userInterval;
+            let safeDelay = Math.max(userInterval, 250); // 改為 250ms 更保險
 
             timerId = setTimeout(() => { 
+                // ✨ 保護機制 3：發音前清場 ✨
+                // 經過了 250ms 的休息，上一句肯定講完了，這時候 cancel 確保通道乾淨
+                synth.cancel();
+                
                 wordIndex++; 
                 playNextWord(); 
             }, safeDelay); 
         };
 
-        // 6. 正常的結束事件
+        // 綁定事件
         u.onend = handleEnd;
-
-        // 7. 錯誤處理
         u.onerror = (e) => { 
             console.error("Speech Error:", e);
-            // 發生錯誤也要繼續，避免卡死
             handleEnd(); 
         }; 
 
-        // 8. 看門狗機制 (保持不變)
+        // 看門狗 (Watchdog)
         clearWatchdog();
-        // 估算唸這個字的時間，給予充足寬限
+        // 給予充足的寬限時間
         let estimatedTime = (item.speak.length * 500) + 2000; 
         if (estimatedTime < 3000) estimatedTime = 3000; 
 
         watchdogTimer = setTimeout(() => {
             console.warn("⚠️ 看門狗強制跳下一字");
-            // 只有在卡死超時的時候，才執行 cancel
-            synth.cancel();
             handleEnd();
         }, estimatedTime);
 
-        // 9. 開始播放
+        // 開始播放
         statusMsg.textContent = "🔊 朗讀中";
         
-        // ✨ 修正重點 2：移除了這裡原本的 synth.cancel() ✨
-        // 讓語音自然播放，不要強制切斷上一句
+        // 這裡不需要 cancel，因為我們在 setTimeout 裡做過清場了
         synth.speak(u);
     }
 
