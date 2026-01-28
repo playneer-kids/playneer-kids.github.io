@@ -156,6 +156,7 @@ I live[v] in Hong Kong.</textarea>
     <div class="status" id="status-msg"></div>
 
     <div class="footer">
+        <button onclick="checkVoices()" style="background:#718096; color:white; border:none; padding:5px 10px; border-radius:5px; font-size:12px; margin-bottom:10px;">🛠️ 檢測語音庫 (Debug)</button>
         <p>🔒 <strong>隱私權聲明：</strong> 本系統所有文字處理與運算均在您的瀏覽器內完成 (Client-side processing)。我們不會收集您的任何資料。</p>
         <p><a href="privacy.html">查看完整隱私權政策</a> | © 2026 Playneer Kids</p>
     </div>
@@ -422,6 +423,10 @@ I live[v] in Hong Kong.</textarea>
 
         // 開始播放
         statusMsg.textContent = "🔊 朗讀中";
+		
+		// ✨ 修正這裡：把抓到的聲音名字顯示出來 ✨
+        let voiceName = u.voice ? u.voice.name : "系統預設 (未抓到)";
+        statusMsg.textContent = `🔊 ${voiceName} 朗讀中`;
         
         // 這裡不需要 cancel，因為我們在 setTimeout 裡做過清場了
         synth.speak(u);
@@ -565,6 +570,23 @@ I live[v] in Hong Kong.</textarea>
     function updateUI() {
         if (isPlaying) { btnPlay.style.display = 'none'; btnPause.style.display = 'inline-block'; btnStop.disabled = false; textInput.disabled = true; dictationModeCheck.disabled = true; } 
         else { btnPlay.textContent = (isPaused) ? "▶ 繼續" : ((sentences.length > 0 && wordIndex === 0) ? "▶ 朗讀此句" : "▶ 開始"); btnPlay.style.display = 'inline-block'; btnPause.style.display = 'none'; btnStop.disabled = !(sentences.length > 0 || textInput.value.trim().length > 0); if (sentences.length > 0) { btnPrev.disabled = (sentenceIndex===0); btnNext.disabled = (sentenceIndex>=sentences.length-1); } else { btnPrev.disabled=true; btnNext.disabled=true; } textInput.disabled = false; dictationModeCheck.disabled = false; }
+    }
+	
+	// ✨ 新增這個檢測函數 ✨
+    function checkVoices() {
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length === 0) {
+            alert("⚠️ 瀏覽器還沒載入語音包！請試著重新整理，或隨便按一下播放鍵後再試。");
+            return;
+        }
+        
+        // 篩選出中文和英文的聲音就好，不然列表太長
+        const list = voices
+            .filter(v => v.lang.includes('zh') || v.lang.includes('en'))
+            .map(v => `[${v.lang}] ${v.name}`)
+            .join('\n');
+            
+        alert("🔍 偵測到的語音列表：\n\n" + list);
     }
 </script>
 <script src="https://pl28580935.effectivegatecpm.com/28/a8/d2/28a8d2218e740f258f34f4ddc118c6d1.js"></script>
