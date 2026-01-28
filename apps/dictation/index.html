@@ -371,9 +371,8 @@ I live[v] in Hong Kong.</textarea>
         // 4. 放入垃圾桶防止回收
         utteranceStorage.push(u);
 
-        // 5. 定義「講完後」要做的事 (封裝成函數以便重複使用)
+        // 5. 定義「講完後」要做的事
         const handleEnd = () => {
-            // 清除看門狗，避免重複觸發
             clearWatchdog();
             
             // 從垃圾桶移除
@@ -381,34 +380,38 @@ I live[v] in Hong Kong.</textarea>
 
             if (!isPlaying) return; 
 
-            statusMsg.textContent = `停頓...`; 
+            statusMsg.textContent = `...`; 
             
-            // 倒數進入下一個字
+            // ✨ 修正重點 1：計算緩衝時間 ✨
+            // 即使設定為 0秒，我們強制給 50ms (0.05秒) 的緩衝，避免 iOS 處理不及
+            let userInterval = parseFloat(intervalRange.value) * 1000;
+            let safeDelay = (userInterval < 50) ? 50 : userInterval;
+
             timerId = setTimeout(() => { 
                 wordIndex++; 
                 playNextWord(); 
-            }, parseFloat(intervalRange.value) * 1000); 
+            }, safeDelay); 
         };
 
         // 6. 正常的結束事件
         u.onend = handleEnd;
 
-        // 7. 錯誤處理 (也當作結束)
+        // 7. 錯誤處理
         u.onerror = (e) => { 
             console.error("Speech Error:", e);
+            // 發生錯誤也要繼續，避免卡死
             handleEnd(); 
         }; 
 
-        // ✨ 8. 看門狗機制 (終極保險) ✨
-        // 估算唸這個字大概要多久？ (每個字給它 0.5秒 + 額外緩衝 2秒)
-        // 如果超過這個時間還沒反應，強制執行 handleEnd
+        // 8. 看門狗機制 (保持不變)
         clearWatchdog();
+        // 估算唸這個字的時間，給予充足寬限
         let estimatedTime = (item.speak.length * 500) + 2000; 
-        if (estimatedTime < 3000) estimatedTime = 3000; // 最少給 3 秒
+        if (estimatedTime < 3000) estimatedTime = 3000; 
 
         watchdogTimer = setTimeout(() => {
-            console.warn("⚠️ iOS 卡住了！看門狗強制跳下一字");
-            // 強制取消當前發音，並手動觸發結束邏輯
+            console.warn("⚠️ 看門狗強制跳下一字");
+            // 只有在卡死超時的時候，才執行 cancel
             synth.cancel();
             handleEnd();
         }, estimatedTime);
@@ -416,7 +419,8 @@ I live[v] in Hong Kong.</textarea>
         // 9. 開始播放
         statusMsg.textContent = "🔊 朗讀中";
         
-        // 注意：這裡移除了 synth.cancel()，讓它自然排隊，減少 iOS 錯亂機率
+        // ✨ 修正重點 2：移除了這裡原本的 synth.cancel() ✨
+        // 讓語音自然播放，不要強制切斷上一句
         synth.speak(u);
     }
 
