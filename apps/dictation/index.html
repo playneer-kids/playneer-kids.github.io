@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -466,61 +466,48 @@ I live[v] in Hong Kong.</textarea>
 
     function setupVoice(u) {
         u.rate = parseFloat(rateRange.value);
-        
         let availableVoices = synth.getVoices();
         let targetLang = langSelect.value; 
         let selectedVoice = null;
 
         // --- 普通話 (Mandarin) ---
         if (targetLang === 'zh-CN') {
-            // 尋找婷婷 (或彬彬)
+            // 只找婷婷 (或彬彬)
             selectedVoice = availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
                             availableVoices.find(v => v.name === 'Bin-Bin' || v.name === '彬彬');
-            
-            // 如果真的沒有，才用寬鬆搜尋
-            if (!selectedVoice) {
-                selectedVoice = availableVoices.find(v => v.lang === 'zh-CN');
-            }
         } 
-        
         // --- 廣東話 (Cantonese) ---
         else if (targetLang === 'zh-HK') {
             selectedVoice = availableVoices.find(v => v.name === 'Sin-ji' || v.name === '仙芝') ||
-                            availableVoices.find(v => v.lang === 'zh-HK') ||
-                            availableVoices.find(v => v.name.includes('Cantonese'));
+                            availableVoices.find(v => v.lang === 'zh-HK');
         } 
-        
         // --- 英語 (English) ---
         else if (targetLang === 'en-GB') {
             selectedVoice = availableVoices.find(v => v.name === 'Daniel') ||
                             availableVoices.find(v => v.lang === 'en-GB');
         }
 
-        // --- 🚨 核心欺騙邏輯 🚨 ---
+        // --- 應用設定 ---
         if (selectedVoice) {
             u.voice = selectedVoice;
-
+            
+            // 🚨 最終大絕招：針對普通話，完全不要設定 u.lang 🚨
+            // 因為一旦設定了 'zh-CN'，iOS 就會因為地區霸權而轉成廣東話。
+            // 我們不設 lang，直接依賴 u.voice (婷婷) 本身的發音。
             if (targetLang === 'zh-CN') {
-                // 這裡就是關鍵！
-                // 我們故意把語言設成 'en-US' (美國英語)。
-                // 這會騙過 iOS，讓它不要啟動「香港地區中文強制轉廣東話」的機制。
-                // 婷婷雖然拿到 'en-US' 的標籤，但她還是會用普通話唸中文字。
-                u.lang = 'en-US'; 
-                console.log("已啟動 iOS 越獄模式：偽裝成英文以強制普通話");
+                u.lang = ''; // 留空，讓聲音自己決定
             } else {
                 u.lang = selectedVoice.lang;
             }
             
         } else {
+            // 沒抓到聲音時的後備
             u.lang = targetLang;
         }
 
-        // Debug 訊息
+        // Debug
         let debugName = selectedVoice ? selectedVoice.name : "系統預設";
-        if (statusMsg) {
-             // 顯示出來讓你知道現在是用「英文標籤」在跑
-             statusMsg.textContent = `🔊 ${debugName} [${u.lang}]`;
-        }
+        if (statusMsg) statusMsg.textContent = `🔊 ${debugName} 朗讀中`;
     }
 
     // 修改 btnPlay 的監聽器
