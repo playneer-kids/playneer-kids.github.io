@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -472,9 +472,14 @@ I live[v] in Hong Kong.</textarea>
 
         // --- 普通話 (Mandarin) ---
         if (targetLang === 'zh-CN') {
-            // 只找婷婷 (或彬彬)
+            // 嚴格鎖定婷婷
             selectedVoice = availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
                             availableVoices.find(v => v.name === 'Bin-Bin' || v.name === '彬彬');
+            
+            // 萬一真的沒有，才找通用標籤
+            if (!selectedVoice) {
+                selectedVoice = availableVoices.find(v => v.lang === 'zh-CN');
+            }
         } 
         // --- 廣東話 (Cantonese) ---
         else if (targetLang === 'zh-HK') {
@@ -491,20 +496,21 @@ I live[v] in Hong Kong.</textarea>
         if (selectedVoice) {
             u.voice = selectedVoice;
             
-            // 正常設定語言即可，因為我們已經改了 HTML tag
-            u.lang = selectedVoice.lang; 
+            // 🚨 關鍵修改：將語言設為空！🚨
+            // 我們不設 'zh-CN'，也不設 'zh-HK'。
+            // 設為空字串，iOS 就不會因為「繁體字 vs 簡體語音」的衝突而強制切換。
+            // 它會被迫直接使用 u.voice (婷婷) 來發聲。
+            u.lang = ''; 
             
-            // 雙重保險：如果是普通話，強制標記為 zh-CN
-            if (targetLang === 'zh-CN') {
-                u.lang = 'zh-CN';
-            }
         } else {
+            // 沒抓到聲音時才勉強設個語言
             u.lang = targetLang;
         }
 
         // Debug 顯示
         let debugName = selectedVoice ? selectedVoice.name : "系統預設";
         if (statusMsg) statusMsg.textContent = `🔊 ${debugName} 朗讀中`;
+        console.log(`[Debug] 目標: ${targetLang}, 抓到: ${debugName}, 語言強制清空`);
     }
 
     // 修改 btnPlay 的監聽器
