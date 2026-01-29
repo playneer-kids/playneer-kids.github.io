@@ -491,21 +491,18 @@ I live[v] in Hong Kong.</textarea>
         if (selectedVoice) {
             u.voice = selectedVoice;
             
-            // 🚨 最終大絕招：針對普通話，完全不要設定 u.lang 🚨
-            // 因為一旦設定了 'zh-CN'，iOS 就會因為地區霸權而轉成廣東話。
-            // 我們不設 lang，直接依賴 u.voice (婷婷) 本身的發音。
-            if (targetLang === 'zh-CN') {
-                u.lang = ''; // 留空，讓聲音自己決定
-            } else {
-                u.lang = selectedVoice.lang;
-            }
+            // 正常設定語言即可，因為我們已經改了 HTML tag
+            u.lang = selectedVoice.lang; 
             
+            // 雙重保險：如果是普通話，強制標記為 zh-CN
+            if (targetLang === 'zh-CN') {
+                u.lang = 'zh-CN';
+            }
         } else {
-            // 沒抓到聲音時的後備
             u.lang = targetLang;
         }
 
-        // Debug
+        // Debug 顯示
         let debugName = selectedVoice ? selectedVoice.name : "系統預設";
         if (statusMsg) statusMsg.textContent = `🔊 ${debugName} 朗讀中`;
     }
@@ -583,5 +580,4 @@ I live[v] in Hong Kong.</textarea>
 </script>
 <script src="https://pl28580935.effectivegatecpm.com/28/a8/d2/28a8d2218e740f258f34f4ddc118c6d1.js"></script>
 </body>
-
 </html>
