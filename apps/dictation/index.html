@@ -473,14 +473,12 @@ I live[v] in Hong Kong.</textarea>
 
         // --- 普通話 (Mandarin) ---
         if (targetLang === 'zh-CN') {
-            // 嚴格鎖定婷婷 (或彬彬)
+            // 優先找婷婷
             selectedVoice = availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
                             availableVoices.find(v => v.name === 'Bin-Bin' || v.name === '彬彬');
             
-            // 如果真的沒有，才找通用標籤
-            if (!selectedVoice) {
-                selectedVoice = availableVoices.find(v => v.lang === 'zh-CN');
-            }
+            // 找不到才用通用標籤
+            if (!selectedVoice) selectedVoice = availableVoices.find(v => v.lang === 'zh-CN');
         } 
         // --- 廣東話 (Cantonese) ---
         else if (targetLang === 'zh-HK') {
@@ -497,25 +495,22 @@ I live[v] in Hong Kong.</textarea>
         if (selectedVoice) {
             u.voice = selectedVoice;
             
-            // 🚨🚨🚨 核彈級修正：詐欺戰術 🚨🚨🚨
-            // 如果目標是普通話 (zh-CN)，我們強制把語言標籤設為 'en-US' (美國英文)。
-            // 原因：iOS 香港地區會強制把 'zh' 開頭的語言轉為廣東話。
-            // 解法：騙它是英文，iOS 就會閉嘴放行，但因為聲音物件(u.voice)是婷婷，
-            // 所以她還是會乖乖唸出普通話。
-            if (targetLang === 'zh-CN') {
-                u.lang = 'en-US'; 
-                console.log("⚠️ 啟動詐欺模式：偽裝成 en-US 以繞過 iOS 限制");
-            } else {
-                u.lang = selectedVoice.lang;
-            }
+            // 🌟 這次我們誠實設定：
+            // 雖然網頁是英文 (html lang=en)，但我們明確告訴語音引擎「我要講普通話 (zh-CN)」
+            // 因為網頁已經是 en 了，iOS 應該不會再雞婆把它轉回廣東話。
+            u.lang = selectedVoice.lang; 
             
+            if (targetLang === 'zh-CN') {
+                u.lang = 'zh-CN'; // 強制鎖定 zh-CN
+            }
         } else {
             u.lang = targetLang;
         }
 
-        // Debug 顯示
+        // Debug 顯示 (🌟 請檢查有沒有看到星星！)
         let debugName = selectedVoice ? selectedVoice.name : "系統預設";
-        if (statusMsg) statusMsg.textContent = `🔊 ${debugName} [${u.lang}]`; // 會顯示 [en-US]
+        if (statusMsg) statusMsg.textContent = `🌟 ${debugName} [${u.lang}] 🌟`; 
+        console.log(`[Debug] 目標: ${targetLang}, 抓到: ${debugName}, 語言: ${u.lang}`);
     }
 
     // 修改 btnPlay 的監聽器
