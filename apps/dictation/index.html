@@ -421,13 +421,6 @@ I live[v] in Hong Kong.</textarea>
             console.warn("⚠️ 看門狗強制跳下一字");
             handleEnd();
         }, estimatedTime);
-
-        // 開始播放
-        statusMsg.textContent = "🔊 朗讀中";
-		
-		// ✨ 修正這裡：把抓到的聲音名字顯示出來 ✨
-        let voiceName = u.voice ? u.voice.name : "系統預設 (未抓到)";
-        statusMsg.textContent = `🔊 ${voiceName} 朗讀中`;
         
         // 這裡不需要 cancel，因為我們在 setTimeout 裡做過清場了
         synth.speak(u);
@@ -473,11 +466,8 @@ I live[v] in Hong Kong.</textarea>
 
         // --- 普通話 (Mandarin) ---
         if (targetLang === 'zh-CN') {
-            // 優先找婷婷
             selectedVoice = availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
                             availableVoices.find(v => v.name === 'Bin-Bin' || v.name === '彬彬');
-            
-            // 找不到才用通用標籤
             if (!selectedVoice) selectedVoice = availableVoices.find(v => v.lang === 'zh-CN');
         } 
         // --- 廣東話 (Cantonese) ---
@@ -495,21 +485,21 @@ I live[v] in Hong Kong.</textarea>
         if (selectedVoice) {
             u.voice = selectedVoice;
             
-            // 🌟 這次我們誠實設定：
-            // 雖然網頁是英文 (html lang=en)，但我們明確告訴語音引擎「我要講普通話 (zh-CN)」
-            // 因為網頁已經是 en 了，iOS 應該不會再雞婆把它轉回廣東話。
-            u.lang = selectedVoice.lang; 
-            
+            // 🚨 核心修改：欺騙戰術 🚨
+            // 如果選的是普通話，我們騙 iOS 這是英文 (en-US)。
+            // 這樣 iOS 就不會雞婆轉成廣東話，而婷婷拿到麥克風後，自然會用普通話唸出漢字。
             if (targetLang === 'zh-CN') {
-                u.lang = 'zh-CN'; // 強制鎖定 zh-CN
+                u.lang = 'en-US'; 
+            } else {
+                u.lang = selectedVoice.lang;
             }
         } else {
             u.lang = targetLang;
         }
 
-        // Debug 顯示 (🌟 請檢查有沒有看到星星！)
+        // Debug 顯示 (我們會用 🔥 火焰符號來確認這是最新版)
         let debugName = selectedVoice ? selectedVoice.name : "系統預設";
-        if (statusMsg) statusMsg.textContent = `🌟 ${debugName} [${u.lang}] 🌟`; 
+        if (statusMsg) statusMsg.textContent = `🔥 ${debugName} [${u.lang}] 🔥`; 
         console.log(`[Debug] 目標: ${targetLang}, 抓到: ${debugName}, 語言: ${u.lang}`);
     }
 
