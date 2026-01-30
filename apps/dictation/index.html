@@ -466,15 +466,12 @@ I live[v] in Hong Kong.</textarea>
 
         // --- 普通話 (Mandarin) ---
         if (targetLang === 'zh-CN') {
-            // 1. 優先找婷婷
+            // 1. 嚴格鎖定婷婷
             selectedVoice = availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
                             availableVoices.find(v => v.name === 'Bin-Bin' || v.name === '彬彬');
             
-            // 2. 找不到就找通用
-            if (!selectedVoice) {
-                // 這裡我們也試著找新加坡或大陸的聲音
-                selectedVoice = availableVoices.find(v => v.lang === 'zh-SG' || v.lang === 'zh-CN');
-            }
+            // 2. 找不到才找通用
+            if (!selectedVoice) selectedVoice = availableVoices.find(v => v.lang === 'zh-CN');
         } 
         // --- 廣東話 (Cantonese) ---
         else if (targetLang === 'zh-HK') {
@@ -491,24 +488,25 @@ I live[v] in Hong Kong.</textarea>
         if (selectedVoice) {
             u.voice = selectedVoice;
             
-            // 🚨 新加坡戰略 (Singapore Strategy) 🚨
-            // 香港 iOS 會把 zh-CN 強制轉為廣東話。
-            // 但 zh-SG (新加坡) 是「簡體+普通話」，而且不會被香港地區設定影響。
-            // 我們強迫系統認為這是新加坡話，它就必須用普通話唸！
+            // 🚨 借殼上市戰術 (The Japan Strategy) 🚨
+            // 香港 iOS 對 'zh' 開頭的語言有極強的控制欲，會強制轉廣東話。
+            // 我們把普通話偽裝成 'ja-JP' (日文)。
+            // 因為日文也有漢字，系統不會報錯，且不會觸發「香港地區鎖定」。
+            // 婷婷 (普通話引擎) 拿到後，會照樣用普通話唸出這些字。
             if (targetLang === 'zh-CN') {
-                u.lang = 'zh-SG'; 
+                u.lang = 'ja-JP'; 
             } else {
                 u.lang = selectedVoice.lang;
             }
         } else {
-            // 沒抓到聲音時，也強制用新加坡代碼
-            u.lang = targetLang === 'zh-CN' ? 'zh-SG' : targetLang;
+            // 沒抓到聲音時的後備
+            u.lang = targetLang === 'zh-CN' ? 'ja-JP' : targetLang;
         }
 
-        // Debug 顯示 (🇸🇬 新加坡國旗版)
+        // Debug 顯示 (🇯🇵 日本國旗版)
         let debugName = selectedVoice ? selectedVoice.name : "系統預設";
-        if (statusMsg) statusMsg.textContent = `🇸🇬 ${debugName} [${u.lang}] 🇸🇬`; 
-        console.log(`[Debug] 目標: ${targetLang}, 抓到: ${debugName}, 強制語言: ${u.lang}`);
+        if (statusMsg) statusMsg.textContent = `🇯🇵 ${debugName} [${u.lang}] 🇯🇵`; 
+        console.log(`[Debug] 目標: ${targetLang}, 抓到: ${debugName}, 偽裝語言: ${u.lang}`);
     }
 	
     // 修改 btnPlay 的監聽器
