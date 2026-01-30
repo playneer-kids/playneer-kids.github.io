@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -466,9 +466,14 @@ I live[v] in Hong Kong.</textarea>
 
         // --- 普通話 (Mandarin) ---
         if (targetLang === 'zh-CN') {
+            // 1. 優先找婷婷
             selectedVoice = availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
                             availableVoices.find(v => v.name === 'Bin-Bin' || v.name === '彬彬');
-            if (!selectedVoice) selectedVoice = availableVoices.find(v => v.lang === 'zh-CN');
+            
+            // 2. 如果沒有，找任何標記為 zh-CN 或 zh-Hans 的
+            if (!selectedVoice) {
+                selectedVoice = availableVoices.find(v => v.lang === 'zh-CN' || v.lang === 'zh-Hans');
+            }
         } 
         // --- 廣東話 (Cantonese) ---
         else if (targetLang === 'zh-HK') {
@@ -485,24 +490,25 @@ I live[v] in Hong Kong.</textarea>
         if (selectedVoice) {
             u.voice = selectedVoice;
             
-            // 🚨 核心修改：欺騙戰術 🚨
-            // 如果選的是普通話，我們騙 iOS 這是英文 (en-US)。
-            // 這樣 iOS 就不會雞婆轉成廣東話，而婷婷拿到麥克風後，自然會用普通話唸出漢字。
+            // 🚨 最終修正：使用腳本代碼 zh-Hans 🚨
+            // zh-CN 是「地區代碼」(中國大陸)，有時會被 iOS 忽略並跳回香港預設。
+            // zh-Hans 是「文字腳本代碼」(簡體字)，這會強制 iOS 認為文字是簡體，
+            // 從而必須使用普通話發音。
             if (targetLang === 'zh-CN') {
-                u.lang = 'en-US'; 
+                u.lang = 'zh-Hans'; 
             } else {
                 u.lang = selectedVoice.lang;
             }
         } else {
-            u.lang = targetLang;
+            u.lang = targetLang === 'zh-CN' ? 'zh-Hans' : targetLang;
         }
 
-        // Debug 顯示 (我們會用 🔥 火焰符號來確認這是最新版)
+        // Debug 顯示 (🍀 四葉草版)
         let debugName = selectedVoice ? selectedVoice.name : "系統預設";
-        if (statusMsg) statusMsg.textContent = `🔥 ${debugName} [${u.lang}] 🔥`; 
-        console.log(`[Debug] 目標: ${targetLang}, 抓到: ${debugName}, 語言: ${u.lang}`);
+        if (statusMsg) statusMsg.textContent = `🍀 ${debugName} [${u.lang}] 🍀`; 
+        console.log(`[Debug] 目標: ${targetLang}, 抓到: ${debugName}, 強制語言: ${u.lang}`);
     }
-
+	
     // 修改 btnPlay 的監聽器
     btnPlay.addEventListener('click', () => {
         if (sentences.length === 0) { 
