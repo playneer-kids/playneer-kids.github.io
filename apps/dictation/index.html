@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -470,9 +470,10 @@ I live[v] in Hong Kong.</textarea>
             selectedVoice = availableVoices.find(v => v.name === '婷婷' || v.name === 'Ting-Ting') ||
                             availableVoices.find(v => v.name === 'Bin-Bin' || v.name === '彬彬');
             
-            // 2. 如果沒有，找任何標記為 zh-CN 或 zh-Hans 的
+            // 2. 找不到就找通用
             if (!selectedVoice) {
-                selectedVoice = availableVoices.find(v => v.lang === 'zh-CN' || v.lang === 'zh-Hans');
+                // 這裡我們也試著找新加坡或大陸的聲音
+                selectedVoice = availableVoices.find(v => v.lang === 'zh-SG' || v.lang === 'zh-CN');
             }
         } 
         // --- 廣東話 (Cantonese) ---
@@ -490,22 +491,23 @@ I live[v] in Hong Kong.</textarea>
         if (selectedVoice) {
             u.voice = selectedVoice;
             
-            // 🚨 最終修正：使用腳本代碼 zh-Hans 🚨
-            // zh-CN 是「地區代碼」(中國大陸)，有時會被 iOS 忽略並跳回香港預設。
-            // zh-Hans 是「文字腳本代碼」(簡體字)，這會強制 iOS 認為文字是簡體，
-            // 從而必須使用普通話發音。
+            // 🚨 新加坡戰略 (Singapore Strategy) 🚨
+            // 香港 iOS 會把 zh-CN 強制轉為廣東話。
+            // 但 zh-SG (新加坡) 是「簡體+普通話」，而且不會被香港地區設定影響。
+            // 我們強迫系統認為這是新加坡話，它就必須用普通話唸！
             if (targetLang === 'zh-CN') {
-                u.lang = 'zh-Hans'; 
+                u.lang = 'zh-SG'; 
             } else {
                 u.lang = selectedVoice.lang;
             }
         } else {
-            u.lang = targetLang === 'zh-CN' ? 'zh-Hans' : targetLang;
+            // 沒抓到聲音時，也強制用新加坡代碼
+            u.lang = targetLang === 'zh-CN' ? 'zh-SG' : targetLang;
         }
 
-        // Debug 顯示 (🍀 四葉草版)
+        // Debug 顯示 (🇸🇬 新加坡國旗版)
         let debugName = selectedVoice ? selectedVoice.name : "系統預設";
-        if (statusMsg) statusMsg.textContent = `🍀 ${debugName} [${u.lang}] 🍀`; 
+        if (statusMsg) statusMsg.textContent = `🇸🇬 ${debugName} [${u.lang}] 🇸🇬`; 
         console.log(`[Debug] 目標: ${targetLang}, 抓到: ${debugName}, 強制語言: ${u.lang}`);
     }
 	
